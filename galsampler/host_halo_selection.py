@@ -6,6 +6,26 @@ from .cython_kernels import source_halo_index_selection_kernel
 
 def source_halo_index_selection(first, last, num_select):
     """
+    Parameters
+    ----------
+    first : ndarray
+        Numpy integer array of shape (nbins, ) storing the index
+        of the first source halo in each bin
+
+    last : ndarray
+        Numpy integer array of shape (nbins, ) storing the index
+        of the last source halo in each bin
+
+    num_select : ndarray
+        Numpy integer array of shape (nbins, ) storing the
+        number of times to draw from each bin
+
+    Returns
+    -------
+    indices : ndarray
+        Numpy integer array of shape (num_select.sum(), ) storing the
+        indices of the source halos to be selected
+
     Examples
     --------
     >>> first = np.array((2, 3, 4))
