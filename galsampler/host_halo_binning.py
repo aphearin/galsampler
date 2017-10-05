@@ -5,10 +5,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 
 
-__all__ = ('halo_bin_indices', )
+__all__ = ('halo_bin_indices_dict', )
 
 
-def halo_bin_indices(source_halo_arrays, halo_property_bins):
+def halo_bin_indices_dict(source_halo_arrays, halo_property_bins):
     """
     Function used to bin the properties of the source halos.
 
@@ -37,7 +37,7 @@ def halo_bin_indices(source_halo_arrays, halo_property_bins):
     -----
     This function calls `numpy.digitize` separately for each array.
     For cases where the source halo property is larger than the largest bin edge,
-    `numpy.digitize` returns `num_bins`. In such cases, the `halo_bin_indices` function
+    `numpy.digitize` returns `num_bins`. In such cases, the `halo_bin_indices_dict` function
     over-writes these values with `num_bins-1`.
 
     Examples
@@ -51,7 +51,7 @@ def halo_bin_indices(source_halo_arrays, halo_property_bins):
 
     >>> source_halo_arrays = dict(mass=mass, conc=conc)
     >>> halo_property_bins = dict(mass=mass_bins, conc=conc_bins)
-    >>> bin_indices_dict = halo_bin_indices(source_halo_arrays, halo_property_bins)
+    >>> bin_indices_dict = halo_bin_indices_dict(source_halo_arrays, halo_property_bins)
     """
     try:
         halo_properties = set(list(source_halo_arrays.keys()))
