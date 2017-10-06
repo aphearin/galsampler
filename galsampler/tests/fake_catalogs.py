@@ -8,7 +8,7 @@ from scipy.stats import poisson
 
 from ..numpy_random_context import NumpyRNGContext
 
-__all__ = ('fake_source_galaxy_catalog', )
+__all__ = ('fake_source_galaxy_catalog', 'fake_target_halo_catalog')
 
 
 source_gals_type_list = list((('gal_id', 'i8'),
@@ -19,7 +19,7 @@ source_gals_type_list = list((('gal_id', 'i8'),
 default_dt_source_gals = np.dtype([(str(a[0]), str(a[1])) for a in source_gals_type_list])
 
 target_halos_type_list = list((('mass', 'f4'), ('conc', 'f4'),
-        ('x', 'f4'), ('y', 'f4'), ('z', 'f4'), ('rvir' ,'f4'),
+        ('x', 'f4'), ('y', 'f4'), ('z', 'f4'), ('rvir', 'f4'),
         ('halo_id', 'i8')))
 default_dt_target_halos = np.dtype([(str(a[0]), str(a[1])) for a in target_halos_type_list])
 

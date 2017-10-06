@@ -17,13 +17,13 @@ def populate_target_halos(source_galaxies, target_halos, halo_property_bins):
     Parameters
     ----------
     source_galaxies : ndarray
-        Numpy structured array of shape (num_source_gals, ) storing
-        the galaxy catalog that will be scaled up to the target simulation.
+        Numpy structured array or Astropy Table of shape (num_source_gals, )
+        storing the galaxy catalog that will be scaled up to the target simulation.
 
     target_halos : ndarray
-        Numpy structured array of shape (num_target_halos, ) storing
-        the halo catalog that will become populated with a Monte Carlo
-        resampling of the source halos.
+        Numpy structured array or Astropy Table of shape (num_target_halos, )
+        storing the halo catalog that will become populated
+        with a Monte Carlo resampling of the source galaxies.
 
     halo_property_bins : dict
         Python dictionary storing the collection of bins used to match
@@ -40,6 +40,7 @@ def populate_target_halos(source_galaxies, target_halos, halo_property_bins):
         the output galaxy catalog
 
     """
+    source_galaxies = format_source_catalog(source_galaxies)
     raise NotImplementedError
 
 
@@ -58,24 +59,46 @@ def compute_richness(host_halo_ids):
     return host_halo_ngals
 
 
-def format_source_catalog(source_halos, halo_property_bins):
+def format_source_catalog(source_galaxies, halo_property_bins):
     """
     Examples
     --------
     >>> from galsampler.tests import fake_source_galaxy_catalog
-    >>> source_halos = fake_source_galaxy_catalog()
+    >>> source_galaxies = fake_source_galaxy_catalog()
     >>> num_bins_mass, num_bins_conc = 12, 11
     >>> mass_bins = np.logspace(10, 15, num_bins_mass)
     >>> conc_bins = np.logspace(1.5, 20, num_bins_conc)
     >>> halo_property_bins = dict(host_halo_mass=mass_bins, host_halo_conc=conc_bins)
-    >>> formatted_source_halos = format_source_catalog(source_halos, halo_property_bins)
+    >>> formatted_source_galaxies = format_source_catalog(source_galaxies, halo_property_bins)
     """
-    source_halos = Table(source_halos)
-    source_halos['host_halo_ngals'] = compute_richness(source_halos['host_halo_id'])
+    source_galaxies = Table(source_galaxies)
+    source_galaxies['host_halo_ngals'] = compute_richness(source_galaxies['host_halo_id'])
 
-    source_halos['halo_bin_number'] = halo_bin_indices(
-        {key: source_halos[key] for key in halo_property_bins.keys()}, halo_property_bins)
+    source_galaxies['halo_bin_number'] = halo_bin_indices(
+        {key: source_galaxies[key] for key in halo_property_bins.keys()}, halo_property_bins)
 
-    source_halos.sort(('halo_bin_number', 'host_halo_id', 'satellite'))
+    source_galaxies.sort(('halo_bin_number', 'host_halo_id', 'satellite'))
 
-    return source_halos
+    return source_galaxies
+
+
+def format_target_catalog(target_halos, halo_property_bins):
+    """
+    Examples
+    --------
+    >>> from galsampler.tests import fake_target_halo_catalog
+    >>> target_halos = fake_target_halo_catalog()
+    >>> num_bins_mass, num_bins_conc = 12, 11
+    >>> mass_bins = np.logspace(10, 15, num_bins_mass)
+    >>> conc_bins = np.logspace(1.5, 20, num_bins_conc)
+    >>> halo_property_bins = dict(mass=mass_bins, conc=conc_bins)
+    >>> formatted_target_halos = format_target_catalog(target_halos, halo_property_bins)
+    """
+    target_halos = Table(target_halos)
+
+    target_halos['halo_bin_number'] = halo_bin_indices(
+        {key: target_halos[key] for key in halo_property_bins.keys()}, halo_property_bins)
+
+    target_halos.sort('halo_bin_number')
+
+    return target_halos
