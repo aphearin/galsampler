@@ -5,7 +5,52 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 
 
-__all__ = ('halo_bin_indices_dict', )
+__all__ = ('halo_bin_indices', )
+
+
+def halo_bin_indices(source_halo_arrays, halo_property_bins):
+    """ Calculate a unique cell ID for every halo.
+
+    Parameters
+    ----------
+    source_halo_arrays : dict
+        Python dictionary storing the collection of properties of the source halos.
+        Each key should be the name of the property to be binned;
+        each value an ndarray of shape (num_halos, ).
+        The keys must match the keys in ``halo_property_bins``.
+
+    halo_property_bins : dict
+        Python dictionary storing the collection of bins.
+        Each key should be the name of the property to be binned;
+        each value an ndarray storing the bin edges for that property.
+        The keys must match the keys in ``source_halo_arrays``.
+
+    Returns
+    -------
+    cell_ids : ndarray
+        Numpy integer array of shape (num_halos, ) storing the integer of the
+        (possibly multi-dimensional) bin of each halo.
+
+    Examples
+    --------
+    In this example, we bin our halos simultaneously by mass and concentration:
+
+    >>> num_halos = 50
+    >>> mass = 10**np.random.uniform(10, 15, num_halos)
+    >>> conc = np.random.uniform(1, 25, num_halos)
+    >>> num_bins_mass, num_bins_conc = 12, 11
+    >>> mass_bins = np.logspace(10, 15, num_bins_mass)
+    >>> conc_bins = np.logspace(1.5, 20, num_bins_conc)
+
+    >>> source_halo_arrays = dict(mass=mass, conc=conc)
+    >>> halo_property_bins = dict(mass=mass_bins, conc=conc_bins)
+    >>> cell_ids = halo_bin_indices(source_halo_arrays, halo_property_bins)
+
+    In this case, all values in the ``cell_ids`` array
+    will be in the interval [0, num_bins_mass*num_bins_conc).
+    """
+    bin_indices_dict = halo_bin_indices_dict(source_halo_arrays, halo_property_bins)
+    return unique_cell_id_from_bin_indices(bin_indices_dict, halo_property_bins)
 
 
 def halo_bin_indices_dict(source_halo_arrays, halo_property_bins):
