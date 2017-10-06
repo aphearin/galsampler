@@ -74,13 +74,13 @@ def fake_source_galaxy_catalog(num_source_gals=int(1e3),
     satmask = galaxy_catalog['satellite'] == True
     nsats = np.count_nonzero(satmask)
     with NumpyRNGContext(seed):
-        dx = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
-        dy = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
-        dz = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
+        dx = np.random.uniform(-1/3., 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
+        dy = np.random.uniform(-1/3., 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
+        dz = np.random.uniform(-1/3., 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
 
-    galaxy_catalog['x'][satmask] += dx
-    galaxy_catalog['y'][satmask] += dy
-    galaxy_catalog['z'][satmask] += dz
+    galaxy_catalog['x'][satmask] = dx + galaxy_catalog['host_halo_x'][satmask]
+    galaxy_catalog['y'][satmask] = dy + galaxy_catalog['host_halo_y'][satmask]
+    galaxy_catalog['z'][satmask] = dz + galaxy_catalog['host_halo_z'][satmask]
 
     idx_ransort = np.random.choice(np.arange(num_source_gals), num_source_gals, replace=False)
 
