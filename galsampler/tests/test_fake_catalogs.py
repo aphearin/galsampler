@@ -5,6 +5,9 @@ import numpy as np
 from .fake_catalogs import fake_source_galaxy_catalog
 
 
+__all__ = ('test1', )
+
+
 def test1():
     n = int(1e3)
     Lbox = 250.
@@ -24,8 +27,8 @@ def test1():
     assert np.all(galaxy_catalog['y'] < Lbox)
     assert np.all(galaxy_catalog['z'] < Lbox)
 
-    dx = galaxy_catalog['x'] - galaxy_catalog['host_x']
-    dy = galaxy_catalog['y'] - galaxy_catalog['host_y']
-    dz = galaxy_catalog['z'] - galaxy_catalog['host_z']
-    dr = np.sqrt(dx**2 + dy**2 + dz**2)/galaxy_catalog['host_rvir']
+    dx = galaxy_catalog['x'] - galaxy_catalog['host_halo_x']
+    dy = galaxy_catalog['y'] - galaxy_catalog['host_halo_y']
+    dz = galaxy_catalog['z'] - galaxy_catalog['host_halo_z']
+    dr = np.sqrt(dx**2 + dy**2 + dz**2)/galaxy_catalog['host_halo_rvir']
     assert np.all(dr < 1)

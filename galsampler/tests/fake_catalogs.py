@@ -12,10 +12,10 @@ __all__ = ('fake_source_galaxy_catalog', )
 
 
 source_gals_type_list = list((('gal_id', 'i8'),
-    ('mass', 'f4'), ('conc', 'f4'), ('host_rvir', 'f4'),
+    ('host_halo_mass', 'f4'), ('host_halo_conc', 'f4'), ('host_halo_rvir', 'f4'),
     ('satellite', '?'), ('host_halo_id', 'i8'),
     ('x', 'f4'), ('y', 'f4'), ('z', 'f4'),
-    ('host_x', 'f4'), ('host_y', 'f4'), ('host_z', 'f4')))
+    ('host_halo_x', 'f4'), ('host_halo_y', 'f4'), ('host_halo_z', 'f4')))
 default_dt_source_gals = np.dtype([(str(a[0]), str(a[1])) for a in source_gals_type_list])
 
 target_halos_type_list = list((('mvir', 'f4'), ('nfw_conc', 'f4'),
@@ -59,30 +59,32 @@ def fake_source_galaxy_catalog(num_source_gals=int(1e3),
 
     galaxy_catalog = np.zeros(num_source_gals, dtype=dt_source_gals)
     galaxy_catalog['gal_id'] = gal_id_array_galaxies[:num_source_gals]
-    galaxy_catalog['mass'] = halo_mass_array[:num_source_gals]
-    galaxy_catalog['conc'] = host_conc_galaxies[:num_source_gals]
+    galaxy_catalog['host_halo_mass'] = halo_mass_array[:num_source_gals]
+    galaxy_catalog['host_halo_conc'] = host_conc_galaxies[:num_source_gals]
     galaxy_catalog['satellite'] = satellite[:num_source_gals]
     galaxy_catalog['host_halo_id'] = halo_id_galaxies[:num_source_gals]
-    galaxy_catalog['host_x'] = host_x_galaxies[:num_source_gals]
-    galaxy_catalog['host_y'] = host_y_galaxies[:num_source_gals]
-    galaxy_catalog['host_z'] = host_z_galaxies[:num_source_gals]
+    galaxy_catalog['host_halo_x'] = host_x_galaxies[:num_source_gals]
+    galaxy_catalog['host_halo_y'] = host_y_galaxies[:num_source_gals]
+    galaxy_catalog['host_halo_z'] = host_z_galaxies[:num_source_gals]
     galaxy_catalog['x'] = host_x_galaxies[:num_source_gals]
     galaxy_catalog['y'] = host_y_galaxies[:num_source_gals]
     galaxy_catalog['z'] = host_z_galaxies[:num_source_gals]
-    galaxy_catalog['host_rvir'] = host_rvir_galaxies[:num_source_gals]
+    galaxy_catalog['host_halo_rvir'] = host_rvir_galaxies[:num_source_gals]
 
     satmask = galaxy_catalog['satellite'] == True
     nsats = np.count_nonzero(satmask)
     with NumpyRNGContext(seed):
-        dx = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_rvir'][satmask]
-        dy = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_rvir'][satmask]
-        dz = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_rvir'][satmask]
+        dx = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
+        dy = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
+        dz = np.random.uniform(0, 1/3., nsats)*galaxy_catalog['host_halo_rvir'][satmask]
 
     galaxy_catalog['x'][satmask] += dx
     galaxy_catalog['y'][satmask] += dy
     galaxy_catalog['z'][satmask] += dz
 
-    return galaxy_catalog
+    idx_ransort = np.random.choice(np.arange(num_source_gals), num_source_gals, replace=False)
+
+    return galaxy_catalog[idx_ransort]
 
 
 def mean_halo_concentration(logM):
