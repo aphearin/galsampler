@@ -8,5 +8,4 @@ from ._astropy_init import *
 
 if not _ASTROPY_SETUP_:
     # For egg_info test builds to pass, put package imports here.
-    pass
-    # from .example_mod import *
+    from .host_halo_binning import *

@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
+
 from .cython_kernels import source_halo_index_selection_kernel
 
 
@@ -41,3 +42,5 @@ def source_halo_index_selection(first, last, num_select):
     assert len(first) == len(last) == len(num_select), "Input 1d arrays must be the same length"
     assert np.all(last - first > 0), "Must have at least one source halo per target"
     return np.array(source_halo_index_selection_kernel(first, last, num_select))
+
+

@@ -2,3 +2,4 @@
 """
 This module contains package tests.
 """
+from .fake_catalogs import *
