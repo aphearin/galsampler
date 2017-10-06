@@ -18,8 +18,8 @@ source_gals_type_list = list((('gal_id', 'i8'),
     ('host_halo_x', 'f4'), ('host_halo_y', 'f4'), ('host_halo_z', 'f4')))
 default_dt_source_gals = np.dtype([(str(a[0]), str(a[1])) for a in source_gals_type_list])
 
-target_halos_type_list = list((('mvir', 'f4'), ('nfw_conc', 'f4'),
-        ('x', 'f4'), ('y', 'f4'), ('z', 'f4'),
+target_halos_type_list = list((('mass', 'f4'), ('conc', 'f4'),
+        ('x', 'f4'), ('y', 'f4'), ('z', 'f4'), ('rvir' ,'f4'),
         ('halo_id', 'i8')))
 default_dt_target_halos = np.dtype([(str(a[0]), str(a[1])) for a in target_halos_type_list])
 
@@ -85,6 +85,26 @@ def fake_source_galaxy_catalog(num_source_gals=int(1e3),
     idx_ransort = np.random.choice(np.arange(num_source_gals), num_source_gals, replace=False)
 
     return galaxy_catalog[idx_ransort]
+
+
+def fake_target_halo_catalog(num_target_halos=int(1e5),
+        dt_target_halos=default_dt_target_halos, seed=None, Lbox=5000.):
+    """
+    Examples
+    --------
+    >>> target_halos = fake_target_halo_catalog()
+    """
+    halos = np.zeros(num_target_halos, dtype=dt_target_halos)
+
+    halos['mass'] = 10**mc_halo_mass(num_target_halos, seed=seed)
+    halos['x'] = np.random.uniform(1, Lbox-1, num_target_halos)
+    halos['y'] = np.random.uniform(1, Lbox-1, num_target_halos)
+    halos['z'] = np.random.uniform(1, Lbox-1, num_target_halos)
+    halos['conc'] = 10**np.random.normal(
+        loc=np.log10(mean_halo_concentration(np.log10(halos['mass']))), scale=0.1)
+    halos['rvir'] = np.random.rand(num_target_halos)
+    halos['halo_id'] = np.arange(len(halos)).astype('i8')
+    return halos
 
 
 def mean_halo_concentration(logM):
