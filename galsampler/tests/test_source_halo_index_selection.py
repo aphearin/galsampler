@@ -2,7 +2,7 @@
 """
 import numpy as np
 
-from ..source_halo_selction import source_halo_index_selection
+from ..source_halo_selection import source_halo_index_selection
 from ..numpy_random_context import NumpyRNGContext
 
 
