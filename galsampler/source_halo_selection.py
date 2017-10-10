@@ -7,9 +7,13 @@ from halotools.utils import unsorting_indices
 __all__ = ('source_halo_index_selection', )
 
 
-def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers):
+def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers,
+        bins, nhalo_min=25):
     """
     """
+    bin_shapes = tuple(len(arr) for arr in bins)
+    num_cells_total = np.product(bin_shapes)
+
     idx_sorted_source_halo_bin_numbers = np.argsort(source_halo_bin_numbers)
     idx_sorted_target_halo_bin_numbers = np.argsort(target_halo_bin_numbers)
 
@@ -21,19 +25,53 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
     unique_target_vals, idx_target, target_counts = np.unique(sorted_target_halo_bin_numbers,
             return_index=True, return_counts=True)
 
+    cell_bins = np.arange(-0.5, num_cells_total+0.5, 1)
+    source_bin_counts = np.histogram(source_halo_bin_numbers, cell_bins)[0]
+    _check_source_binning(source_bin_counts, nhalo_min)
+
     result = np.zeros_like(target_halo_bin_numbers).astype('i8')
 
     gen = zip(unique_target_vals, idx_target, target_counts)
-    for bin_index, starting_sorted_target_idx, num_target_halos in gen:
+    for target_bin, starting_sorted_target_idx, num_target_halos in gen:
         ending_sorted_target_idx = starting_sorted_target_idx + num_target_halos
 
+        source_bin = get_source_bin_from_target_bin(
+                source_bin_counts, target_bin, nhalo_min, bin_shapes)
         low_sorted_source_idx, high_sorted_source_idx = np.searchsorted(
-                sorted_source_halo_bin_numbers, [bin_index, bin_index+1])
+                sorted_source_halo_bin_numbers, [source_bin, source_bin+1])
 
-        print(low_sorted_source_idx, high_sorted_source_idx, num_target_halos)
         randoms = np.random.randint(low_sorted_source_idx, high_sorted_source_idx, num_target_halos)
 
         result[starting_sorted_target_idx:ending_sorted_target_idx] = selection_indices[randoms]
 
     idx_target_unsorted = unsorting_indices(idx_sorted_target_halo_bin_numbers)
     return result[idx_target_unsorted]
+
+
+def get_source_bin_from_target_bin(source_bin_counts, bin_number, nhalo_min, bin_shapes):
+    """
+    """
+    if source_bin_counts[bin_number] >= nhalo_min:
+        return bin_number
+    else:
+        idx = np.unravel_index(bin_number, bin_shapes)
+        num_cells_total = np.product(bin_shapes)
+
+        seq = list((bin_number, taxicab_metric(idx, np.unravel_index(bin_number, bin_shapes)))
+            for bin_number in range(num_cells_total) if source_bin_counts[bin_number] > nhalo_min)
+        sorted_seq = sorted(seq, key=lambda s: s[1])
+        return sorted_seq[0]
+
+
+def taxicab_metric(arr1, arr2):
+    return sum(abs(y-x) for x, y in zip(arr1, arr2))
+
+
+def _check_source_binning(source_bin_counts, nhalo_min, frac_good_required=0.5):
+    num_bins_with_good_sampling = np.count_nonzero(source_bin_counts >= nhalo_min)
+    frac_good = num_bins_with_good_sampling/float(len(source_bin_counts))
+    msg = ("The fraction of cells in the source catalog \nwith "
+    "more halos than nhalo_min={0} is {1:.2f} < frac_good_required={2:.2f}")
+
+    if num_bins_with_good_sampling == 0:
+        raise ValueError(msg.format(nhalo_min, frac_good, frac_good_required))
