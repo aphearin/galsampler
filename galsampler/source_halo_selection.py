@@ -8,8 +8,40 @@ __all__ = ('source_halo_index_selection', )
 
 
 def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers,
-        bins, nhalo_min=25):
-    """
+        nhalo_min, *bins):
+    """ Randomly select the index of a host halo from the source catalog
+    for every halo in the target halo catalog.
+
+    When possible, only source halos from the same multi-dimensional bin as the
+    host halo will be selected. However, if a cell has fewer than ``nhalo_min``
+    halos in the source catalog, then a source halo will instead be selected from
+    the nearest adjacent cell with more than ``nhalo_min`` objects.
+
+    Parameters
+    ----------
+    source_halo_bin_numbers : ndarray
+        Numpy integer array of shape (num_source_halos, ) storing the bin number
+        of every halo in the source catalog. This bin number can be calculated
+        using the `halo_bin_indices` function.
+
+    target_halo_bin_numbers : ndarray
+        Numpy integer array of shape (num_target_halos, ) storing the bin number
+        of every halo in the target catalog. This bin number can be calculated
+        using the `halo_bin_indices` function.
+
+    nhalo_min : int
+        Minimum permissible number of halos in source catalog for a cell to be
+        considered well-sampled
+
+    bins : sequence
+        Sequence of arrays that were used to bin the halos
+
+    Returns
+    -------
+    selection_indices : ndarray
+        Numpy integer array of shape (num_target_halos, ) storing the index of
+        the halo selected from the source catalog whose galaxies will populate
+        the target halo
     """
     bin_shapes = tuple(len(arr) for arr in bins)
     num_cells_total = np.product(bin_shapes)
