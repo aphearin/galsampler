@@ -47,15 +47,10 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
     num_cells_total = np.product(bin_shapes)
 
     idx_sorted_source_halo_bin_numbers = np.argsort(source_halo_bin_numbers)
-    idx_sorted_target_halo_bin_numbers = np.argsort(target_halo_bin_numbers)
 
     selection_indices = np.arange(len(source_halo_bin_numbers))[idx_sorted_source_halo_bin_numbers]
 
     sorted_source_halo_bin_numbers = source_halo_bin_numbers[idx_sorted_source_halo_bin_numbers]
-    sorted_target_halo_bin_numbers = target_halo_bin_numbers[idx_sorted_target_halo_bin_numbers]
-
-    unique_target_vals, idx_target, target_counts = np.unique(sorted_target_halo_bin_numbers,
-            return_index=True, return_counts=True)
 
     cell_bins = np.arange(-0.5, num_cells_total+0.5, 1)
     source_bin_counts = np.histogram(source_halo_bin_numbers, cell_bins)[0]
@@ -63,21 +58,21 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
 
     result = np.zeros_like(target_halo_bin_numbers).astype('i8')
 
-    gen = zip(unique_target_vals, idx_target, target_counts)
-    for target_bin, starting_sorted_target_idx, num_target_halos in gen:
-        ending_sorted_target_idx = starting_sorted_target_idx + num_target_halos
+    for target_bin in range(num_cells_total):
+        target_bin_mask = target_halo_bin_numbers == target_bin
+        num_target_halos = np.count_nonzero(target_bin_mask)
 
         source_bin = get_source_bin_from_target_bin(
                 source_bin_counts, target_bin, nhalo_min, bin_shapes)
+
         low_sorted_source_idx, high_sorted_source_idx = np.searchsorted(
                 sorted_source_halo_bin_numbers, [source_bin, source_bin+1])
 
         randoms = np.random.randint(low_sorted_source_idx, high_sorted_source_idx, num_target_halos)
 
-        result[starting_sorted_target_idx:ending_sorted_target_idx] = selection_indices[randoms]
+        result[target_bin_mask] = selection_indices[randoms]
 
-    idx_target_unsorted = unsorting_indices(idx_sorted_target_halo_bin_numbers)
-    return result[idx_target_unsorted]
+    return result
 
 
 def get_source_bin_from_target_bin(source_bin_counts, bin_number, nhalo_min, bin_shapes):
