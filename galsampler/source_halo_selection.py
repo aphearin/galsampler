@@ -2,8 +2,6 @@
 """
 import numpy as np
 
-from halotools.utils import unsorting_indices
-
 __all__ = ('source_halo_index_selection', )
 
 
