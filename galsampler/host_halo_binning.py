@@ -9,7 +9,7 @@ __all__ = ('halo_bin_indices', )
 
 
 def halo_bin_indices(**haloprop_and_bins_dict):
-    """ Calculate a unique cell ID for every halo.
+    """ Calculate a unique cell ID for every host halo.
 
     Parameters
     ----------
@@ -37,8 +37,6 @@ def halo_bin_indices(**haloprop_and_bins_dict):
     >>> mass_bins = np.logspace(10, 15, num_bins_mass)
     >>> conc_bins = np.logspace(1.5, 20, num_bins_conc)
 
-    >>> source_halo_arrays = dict(mass=mass, conc=conc)
-    >>> halo_property_bins = dict(mass=mass_bins, conc=conc_bins)
     >>> cell_ids = halo_bin_indices(mass=(mass, mass_bins), conc=(conc, conc_bins))
 
     In this case, all values in the ``cell_ids`` array

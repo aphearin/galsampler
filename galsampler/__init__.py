@@ -9,3 +9,4 @@ from ._astropy_init import *
 if not _ASTROPY_SETUP_:
     # For egg_info test builds to pass, put package imports here.
     from .host_halo_binning import *
+    from .source_halo_selection import *

@@ -60,15 +60,16 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
         target_bin_mask = target_halo_bin_numbers == target_bin
         num_target_halos = np.count_nonzero(target_bin_mask)
 
-        source_bin = get_source_bin_from_target_bin(
-                source_bin_counts, target_bin, nhalo_min, bin_shapes)
+        if num_target_halos > 0:
+            source_bin = get_source_bin_from_target_bin(
+                    source_bin_counts, target_bin, nhalo_min, bin_shapes)
 
-        low_sorted_source_idx, high_sorted_source_idx = np.searchsorted(
-                sorted_source_halo_bin_numbers, [source_bin, source_bin+1])
+            low_sorted_source_idx, high_sorted_source_idx = np.searchsorted(
+                    sorted_source_halo_bin_numbers, [source_bin, source_bin+1])
 
-        randoms = np.random.randint(low_sorted_source_idx, high_sorted_source_idx, num_target_halos)
+            randoms = np.random.randint(low_sorted_source_idx, high_sorted_source_idx, num_target_halos)
 
-        result[target_bin_mask] = selection_indices[randoms]
+            result[target_bin_mask] = selection_indices[randoms]
 
     return result
 
