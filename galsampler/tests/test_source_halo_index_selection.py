@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from ..source_halo_selection import source_halo_index_selection
+from ..source_halo_selection import source_halo_index_selection, get_source_bin_from_target_bin
 from ..numpy_random_context import NumpyRNGContext
 
 
@@ -72,3 +72,13 @@ def test_source_halo_index_selection_missing_source_cells():
 
     substr = "The fraction of cells in the source catalog"
     assert substr in err.value.args[0]
+
+
+def test_get_source_bin_from_target_bin():
+    bin_shapes = (25, )
+    source_bin_counts = np.random.randint(100, 500, 25)
+    source_bin_counts[0] = 3
+    bin_number = 0
+    nhalo_min = 50
+    result = get_source_bin_from_target_bin(source_bin_counts, bin_number, nhalo_min, bin_shapes)
+    assert result == 1

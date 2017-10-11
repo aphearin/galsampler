@@ -63,8 +63,6 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
         if num_target_halos > 0:
             source_bin = get_source_bin_from_target_bin(
                     source_bin_counts, target_bin, nhalo_min, bin_shapes)
-
-            print("source_bin = {0}".format(source_bin))
             low_sorted_source_idx, high_sorted_source_idx = np.searchsorted(
                     sorted_source_halo_bin_numbers, [source_bin, source_bin+1])
 
@@ -87,7 +85,7 @@ def get_source_bin_from_target_bin(source_bin_counts, bin_number, nhalo_min, bin
         seq = list((bin_number, taxicab_metric(idx, np.unravel_index(bin_number, bin_shapes)))
             for bin_number in range(num_cells_total) if source_bin_counts[bin_number] > nhalo_min)
         sorted_seq = sorted(seq, key=lambda s: s[1])
-        return sorted_seq[0]
+        return sorted_seq[0][0]
 
 
 def taxicab_metric(arr1, arr2):
