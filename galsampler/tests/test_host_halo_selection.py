@@ -1,7 +1,7 @@
 """
 """
 import numpy as np
-from ..host_halo_selection import compute_richness
+from ..utils import compute_richness
 
 
 __all__ = ('test_compute_richness1', )
