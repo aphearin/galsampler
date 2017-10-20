@@ -2,7 +2,7 @@ from distutils.extension import Extension
 import os
 
 PATH_TO_PKG = os.path.relpath(os.path.dirname(__file__))
-SOURCES = ("halo_selection_kernel.pyx", "galaxy_selection_kernel.pyx")
+SOURCES = ("galaxy_selection_kernel.pyx", )
 THIS_PKG_NAME = '.'.join(__name__.split('.')[:-1])
 
 
