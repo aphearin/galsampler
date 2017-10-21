@@ -82,7 +82,7 @@ def test2_bijective_case():
     target_halo_dt_list = [(str('bin_number'), str('i4'))]
     target_halos_dtype = np.dtype(target_halo_dt_list)
     target_halos = np.zeros(num_target_halos, dtype=target_halos_dtype)
-    target_halos['bin_number'] = np.arange(num_target_halos).astype(int)
+    target_halos['bin_number'] = np.repeat(source_halos['bin_number'], 5)
 
     fake_bins = np.arange(num_source_halos)
     indices = source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
