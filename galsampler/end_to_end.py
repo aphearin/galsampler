@@ -85,7 +85,7 @@ def source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
     #  Sort the source galaxies so that members of a common halo are grouped together
     source_galaxies.sort(source_galaxies_colnames['host_halo_id'])
 
-    #  For every target halo, calculate the index of a source halo whose resident
+    #  For each target halo, calculate the index of the source halo whose resident
     #  galaxies will populate the target halo.
     source_halo_selection_indices = source_halo_index_selection(
             source_halos[source_halos_colnames['bin_number']],
@@ -94,11 +94,13 @@ def source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
     #  For each selected source halo, determine the index of the first
     #  appearance of a source galaxy that resides in that halo
     #  The algorithm below is predicated upon the source galaxies being sorted by ``host_halo_id``
-    uval, indx_uval = np.unique(
-        source_galaxies[source_galaxies_colnames['host_halo_id']], return_index=True)
+    uval, indx_uval, counts = np.unique(
+        source_galaxies[source_galaxies_colnames['host_halo_id']],
+        return_index=True, return_counts=True)
     selected_halo_ids = source_halos[source_halos_colnames['halo_id']][source_halo_selection_indices]
-    idxA, idxB = crossmatch(selected_halo_ids, uval)
-    representative_galaxy_selection_indices = indx_uval[idxB]
+    __, idxB = crossmatch(selected_halo_ids, uval)
+    idxB_with_multiplicity = np.repeat(idxB, counts[idxB])
+    representative_galaxy_selection_indices = indx_uval[idxB_with_multiplicity]
 
     #  Call the cython kernel to calculate all relevant galaxy indices
     #  for each selected source halo
