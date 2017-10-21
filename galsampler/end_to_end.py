@@ -2,6 +2,7 @@
 """
 import numpy as np
 from halotools.utils import crossmatch
+from astropy.table import Table
 from .utils import compute_richness
 from .source_halo_selection import source_halo_index_selection
 from .source_galaxy_selection import source_galaxy_index_selection
@@ -39,8 +40,14 @@ def source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
         Minimum permissible number of halos in source catalog for a cell to be
         considered well-sampled
 
-    bins : sequence
+    *bins : sequence
         Sequence of arrays that were used to bin the halos
+
+    source_galaxies_colnames : dict, optional
+
+    source_halos_colnames : dict, optional
+
+    target_halos_colnames : dict, optional
 
     Returns
     -------
@@ -48,6 +55,10 @@ def source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
         Numpy integer array of shape (num_target_gals, ) storing the indices
         of the selected galaxies
     """
+    source_galaxies = Table(source_galaxies)
+    source_halos = Table(source_halos)
+    target_halos = Table(target_halos)
+
     source_galaxies_colnames = dict(halo_id='halo_id', host_halo_id='host_halo_id')
     source_galaxies_colnames.update(kwargs.get('source_galaxies_colnames', {}))
     _check_colname_correspondence_dictionary(source_galaxies_colnames, source_galaxies, "source_galaxies")
@@ -101,7 +112,7 @@ def _check_colname_correspondence_dictionary(d, catalog, catalog_varname):
     keyword_name = catalog_varname + "_colnames"
     for key, value in d.items():
         try:
-            assert value in list(catalog.keys())
+            assert value in catalog.dtype.names
         except AssertionError:
             msg = ("{0} does not contain a ``{1}`` column name\n"
                 "Either rename some column in {0} or use the {2} keyword")
