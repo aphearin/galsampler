@@ -42,8 +42,10 @@ def test1_bijective_case():
     target_halos['bin_number'] = np.arange(num_target_halos).astype(int)
 
     fake_bins = np.arange(num_source_halos)
-    indices = source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
-            nhalo_min, fake_bins)
+    indices = source_galaxy_selection_indices(source_galaxies['halo_id'], source_galaxies['host_halo_id'],
+            source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'], nhalo_min,
+            fake_bins)
+
     selected_galaxies = source_galaxies[indices]
     assert len(selected_galaxies) == len(source_galaxies)
     assert np.all(selected_galaxies['halo_id'] == source_galaxies['halo_id'])
@@ -86,8 +88,10 @@ def test2_bijective_case():
     target_halos['bin_number'] = np.repeat(source_halos['bin_number'], 5)
 
     fake_bins = np.arange(num_source_halos)
-    indices = source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
-            nhalo_min, fake_bins)
+    indices = source_galaxy_selection_indices(source_galaxies['halo_id'], source_galaxies['host_halo_id'],
+            source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'], nhalo_min,
+            fake_bins)
+
     selected_galaxies = source_galaxies[indices]
     assert len(selected_galaxies) == num_target_halos
     assert np.all(selected_galaxies == np.repeat(source_galaxies, 5))
@@ -110,19 +114,28 @@ def test3():
 
     #  source_galaxies column names must include ``halo_id`` and ``host_halo_id``
     ngals_per_source_halo = 3
-    num_galaxies = num_source_halos*ngals_per_source_halo
+    num_source_galaxies = num_source_halos*ngals_per_source_halo
     source_galaxy_host_halo_id = np.repeat(source_halo_id, ngals_per_source_halo)
     source_galaxy_halo_id = np.copy(source_galaxy_host_halo_id)
-    source_galaxy_halo_id[1::3] = np.random.randint(int(1e3), int(1e6), int(num_galaxies/3))
-    source_galaxy_halo_id[2::3] = np.random.randint(int(1e3), int(1e6), int(num_galaxies/3))
+    source_galaxy_halo_id[1::3] = np.random.randint(int(1e3), int(1e6), int(num_source_galaxies/3))
+    source_galaxy_halo_id[2::3] = np.random.randint(int(1e3), int(1e6), int(num_source_galaxies/3))
+    source_galaxy_host_mass = np.repeat(source_halo_log_mhost, ngals_per_source_halo)
 
     #  target_halos column names must include ``bin_number``
     num_target_halos_per_source_halo = 121
     target_halo_bin_number = np.repeat(source_halo_bin_number, num_target_halos_per_source_halo)
+    num_target_halos = len(target_halo_bin_number)
 
     nhalo_min = 5
+    indices = source_galaxy_selection_indices(
+                source_galaxy_halo_id, source_galaxy_host_halo_id,
+                source_halo_id, source_halo_bin_number, target_halo_bin_number,
+                nhalo_min, log_mhost_bins)
+    selected_galaxies_host_mass = source_galaxy_host_mass[indices]
+    correct_num_target_galaxies = int(num_source_galaxies*(num_target_halos/float(num_source_halos)))
+    msg = "target_galaxies does not have correct length"
+    assert len(selected_galaxies_host_mass) == correct_num_target_galaxies, msg
 
-    raise NotImplementedError
 
 @pytest.mark.xfail
 def test_constant_scaleup_case():

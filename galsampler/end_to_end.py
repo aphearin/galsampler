@@ -2,14 +2,14 @@
 """
 import numpy as np
 from halotools.utils import crossmatch
-from astropy.table import Table
 from .utils import compute_richness
 from .source_halo_selection import source_halo_index_selection
 from .source_galaxy_selection import source_galaxy_index_selection
 
 
-def source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
-            nhalo_min, *bins, **kwargs):
+def source_galaxy_selection_indices(source_galaxies_halo_id, source_galaxies_host_halo_id,
+            source_halos_halo_id, source_halos_bin_number, target_halos_bin_number, nhalo_min,
+            *bins, **kwargs):
     """
     Examples
     --------
@@ -44,61 +44,41 @@ def source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
     *bins : sequence
         Sequence of arrays that were used to bin the halos
 
-    source_galaxies_colnames : dict, optional
-
-    source_halos_colnames : dict, optional
-
-    target_halos_colnames : dict, optional
-
     Returns
     -------
     indices : ndarray
         Numpy integer array of shape (num_target_gals, ) storing the indices
         of the selected galaxies
     """
-    source_galaxies = Table(source_galaxies)
-    source_halos = Table(source_halos)
-    target_halos = Table(target_halos)
+    source_halos_richness = compute_richness(
+                source_halos_halo_id, source_galaxies_host_halo_id)
 
-    source_galaxies_colnames = dict(halo_id='halo_id', host_halo_id='host_halo_id')
-    source_galaxies_colnames.update(kwargs.get('source_galaxies_colnames', {}))
-    _check_colname_correspondence_dictionary(source_galaxies_colnames, source_galaxies, "source_galaxies")
-
-    source_halos_colnames = kwargs.get('source_halos_colnames',
-            dict(halo_id='halo_id', bin_number='bin_number'))
-
-    target_halos_colnames = kwargs.get('target_halos_colnames',
-            dict(bin_number='bin_number'))
-
-    source_halos['richness'] = compute_richness(
-                source_halos[source_halos_colnames['halo_id']],
-                source_galaxies[source_galaxies_colnames['host_halo_id']])
-
-    #  Broadcast the ``bin_number`` and ``richness`` columns
-    #  from the source halos to the source galaxies
-    idxA, idxB = crossmatch(source_galaxies[source_galaxies_colnames['host_halo_id']],
-            source_halos[source_halos_colnames['halo_id']])
-    source_galaxies['bin_number'] = 0
-    source_galaxies['richness'] = 0
-    source_galaxies['bin_number'][idxA] = source_halos[source_halos_colnames['bin_number']][idxB]
-    source_galaxies['richness'][idxA] = source_halos['richness'][idxB]
+    #  Broadcast bin_number and richness from the source halos to the source galaxies
+    idxA, idxB = crossmatch(source_galaxies_host_halo_id, source_halos_halo_id)
+    source_galaxies_bin_number = np.zeros_like(source_galaxies_halo_id)
+    source_galaxies_richness = np.zeros_like(source_galaxies_halo_id)
+    source_galaxies_bin_number[idxA] = source_halos_bin_number[idxB]
+    source_galaxies_richness[idxA] = source_halos_richness[idxB]
 
     #  Sort the source galaxies so that members of a common halo are grouped together
-    source_galaxies.sort(source_galaxies_colnames['host_halo_id'])
+    idx_sorted_source_galaxies = np.argsort(source_galaxies_host_halo_id)
+    source_galaxies_bin_number = source_galaxies_bin_number[idx_sorted_source_galaxies]
+    source_galaxies_richness = source_galaxies_richness[idx_sorted_source_galaxies]
+    source_galaxies_bin_number = source_galaxies_bin_number[idx_sorted_source_galaxies]
+    source_galaxies_halo_id = source_galaxies_halo_id[idx_sorted_source_galaxies]
+    source_galaxies_host_halo_id = source_galaxies_host_halo_id[idx_sorted_source_galaxies]
 
     #  For each target halo, calculate the index of the source halo whose resident
     #  galaxies will populate the target halo.
     source_halo_selection_indices = source_halo_index_selection(
-            source_halos[source_halos_colnames['bin_number']],
-            target_halos[target_halos_colnames['bin_number']], nhalo_min, *bins)
+            source_halos_bin_number, target_halos_bin_number, nhalo_min, *bins)
 
     #  For each selected source halo, determine the index of the first
     #  appearance of a source galaxy that resides in that halo
     #  The algorithm below is predicated upon the source galaxies being sorted by ``host_halo_id``
-    uval, indx_uval, counts = np.unique(
-        source_galaxies[source_galaxies_colnames['host_halo_id']],
-        return_index=True, return_counts=True)
-    selected_halo_ids = source_halos[source_halos_colnames['halo_id']][source_halo_selection_indices]
+    uval, indx_uval, counts = np.unique( source_galaxies_host_halo_id,
+                return_index=True, return_counts=True)
+    selected_halo_ids = source_halos_halo_id[source_halo_selection_indices]
     __, idxB = crossmatch(selected_halo_ids, uval)
     idxB_with_multiplicity = np.repeat(idxB, counts[idxB])
     representative_galaxy_selection_indices = indx_uval[idxB_with_multiplicity]
@@ -106,7 +86,7 @@ def source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
     #  Call the cython kernel to calculate all relevant galaxy indices
     #  for each selected source halo
     return source_galaxy_index_selection(representative_galaxy_selection_indices,
-                        source_galaxies['richness'][representative_galaxy_selection_indices])
+                        source_galaxies_richness[representative_galaxy_selection_indices])
 
 
 def _check_colname_correspondence_dictionary(d, catalog, catalog_varname):
