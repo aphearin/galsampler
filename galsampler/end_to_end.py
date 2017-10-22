@@ -31,7 +31,8 @@ def source_galaxy_selection_indices(source_galaxies, source_halos, target_halos,
     target_halos : Numpy structured array
         Ndarray of shape (num_target_halos, ) storing the catalog of host halos
         that will become populated by a Monte Carlo sampling of the source galaxies.
-        Column names must include ``bin_number``.
+        Column names must include ``bin_number``, or otherwise be defined
+        via the optional target_halos_colnames keyword.
 
         The ``bin_number`` column can be computed using the
         `galsampler.halo_bin_indices` function.

@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import pytest
 import numpy as np
 from ..end_to_end import source_galaxy_selection_indices
+from ..host_halo_binning import halo_bin_indices
 
 
 def test1_bijective_case():
@@ -92,19 +93,36 @@ def test2_bijective_case():
     assert np.all(selected_galaxies == np.repeat(source_galaxies, 5))
 
 
-@pytest.mark.xfail
-def test3_bijective_case():
+def test3():
     """
-    Identical setup to test1_bijective_case,
-    but the initialization uses the host_halo_binning_module
-    for integration testing purposes.
     """
-    log_mhost_min, log_mhost_max, dlog_mhost = 9.5, 15.5, 0.5
+    #  Set up a source halo catalog with 100 halos in each mass bin
+    log_mhost_min, log_mhost_max, dlog_mhost = 10.5, 15.5, 0.5
     log_mhost_bins = np.arange(log_mhost_min, log_mhost_max+dlog_mhost, dlog_mhost)
     log_mhost_mids = 0.5*(log_mhost_bins[:-1] + log_mhost_bins[1:])
-    num_galaxies = len(log_mhost_mids)
-    raise NotImplementedError
 
+    #  source_halos column names must include ``halo_id`` and ``bin_number``
+    num_source_halos_per_bin = 100
+    source_halo_log_mhost = np.tile(log_mhost_mids, num_source_halos_per_bin)
+    num_source_halos = len(source_halo_log_mhost)
+    source_halo_id = np.arange(num_source_halos).astype(int)
+    source_halo_bin_number = halo_bin_indices(log_mhost=(source_halo_log_mhost, log_mhost_bins))
+
+    #  source_galaxies column names must include ``halo_id`` and ``host_halo_id``
+    ngals_per_source_halo = 3
+    num_galaxies = num_source_halos*ngals_per_source_halo
+    source_galaxy_host_halo_id = np.repeat(source_halo_id, ngals_per_source_halo)
+    source_galaxy_halo_id = np.copy(source_galaxy_host_halo_id)
+    source_galaxy_halo_id[1::3] = np.random.randint(int(1e3), int(1e6), int(num_galaxies/3))
+    source_galaxy_halo_id[2::3] = np.random.randint(int(1e3), int(1e6), int(num_galaxies/3))
+
+    #  target_halos column names must include ``bin_number``
+    num_target_halos_per_source_halo = 121
+    target_halo_bin_number = np.repeat(source_halo_bin_number, num_target_halos_per_source_halo)
+
+    nhalo_min = 5
+
+    raise NotImplementedError
 
 @pytest.mark.xfail
 def test_constant_scaleup_case():
