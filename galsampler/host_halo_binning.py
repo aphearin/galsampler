@@ -45,10 +45,10 @@ def halo_bin_indices(**haloprop_and_bins_dict):
     bin_indices_dict = {}
     for haloprop_name in haloprop_and_bins_dict.keys():
         arr, bins = haloprop_and_bins_dict[haloprop_name]
-        bin_indices = np.minimum(np.digitize(arr, bins), len(bins)-1)
+        bin_indices = np.maximum(1, np.minimum(np.digitize(arr, bins), len(bins)-1)) - 1
         bin_indices_dict[haloprop_name] = bin_indices
 
-    num_bins_dict = {key: len(haloprop_and_bins_dict[key][1]) for key in haloprop_and_bins_dict.keys()}
+    num_bins_dict = {key: len(haloprop_and_bins_dict[key][1])-1 for key in haloprop_and_bins_dict.keys()}
 
     return np.ravel_multi_index(list(bin_indices_dict.values()),
             list(num_bins_dict.values()))

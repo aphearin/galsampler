@@ -49,7 +49,7 @@ def source_halo_index_selection(source_halo_bin_numbers,
         Numpy integer array of shape (num_target_halos, ) storing the halo ID
         of the target halo corresponding to each selected source halo
     """
-    bin_shapes = tuple(len(arr) for arr in bins)
+    bin_shapes = tuple(len(arr)-1 for arr in bins)
     num_cells_total = np.product(bin_shapes)
 
     idx_sorted_source_halo_bin_numbers = np.argsort(source_halo_bin_numbers)
@@ -67,15 +67,15 @@ def source_halo_index_selection(source_halo_bin_numbers,
 
     for target_bin in range(num_cells_total):
         target_bin_mask = target_halo_bin_numbers == target_bin
-        num_target_halos = np.count_nonzero(target_bin_mask)
+        num_target_halos_in_bin = np.count_nonzero(target_bin_mask)
 
-        if num_target_halos > 0:
+        if num_target_halos_in_bin > 0:
             source_bin = get_source_bin_from_target_bin(
                     source_bin_counts, target_bin, nhalo_min, bin_shapes)
             low_sorted_source_idx, high_sorted_source_idx = np.searchsorted(
                     sorted_source_halo_bin_numbers, [source_bin, source_bin+1])
 
-            randoms = np.random.randint(low_sorted_source_idx, high_sorted_source_idx, num_target_halos)
+            randoms = np.random.randint(low_sorted_source_idx, high_sorted_source_idx, num_target_halos_in_bin)
 
             result[target_bin_mask] = selection_indices[randoms]
             matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
@@ -93,8 +93,9 @@ def get_source_bin_from_target_bin(source_bin_counts, bin_number, nhalo_min, bin
         num_cells_total = np.product(bin_shapes)
 
         seq = list((bin_number, taxicab_metric(idx, np.unravel_index(bin_number, bin_shapes)))
-            for bin_number in range(num_cells_total) if source_bin_counts[bin_number] > nhalo_min)
+            for bin_number in range(num_cells_total) if source_bin_counts[bin_number] >= nhalo_min)
         sorted_seq = sorted(seq, key=lambda s: s[1])
+        print("sorted_seq = {0}".format(sorted_seq))
         return sorted_seq[0][0]
 
 
@@ -110,3 +111,44 @@ def _check_source_binning(source_bin_counts, nhalo_min, frac_good_required=0.5):
 
     if num_bins_with_good_sampling == 0:
         raise ValueError(msg.format(nhalo_min, frac_good, frac_good_required))
+
+
+def alt_source_halo_index_selection(source_halo_bin_numbers,
+            target_halo_bin_numbers, target_halo_ids, nhalo_min, *bins):
+    """
+    """
+    num_source_halos = len(source_halo_bin_numbers)
+    selection_indices = np.arange(num_source_halos).astype('i8')
+
+    bin_shapes = tuple(len(arr)-1 for arr in bins)
+    num_cells_total = np.product(bin_shapes)
+
+    cell_bins = np.arange(-0.5, num_cells_total+0.5, 1)
+    source_bin_counts = np.histogram(source_halo_bin_numbers, cell_bins)[0]
+    _check_source_binning(source_bin_counts, nhalo_min)
+
+    result = np.zeros_like(target_halo_bin_numbers).astype('i8')
+    matching_target_halo_ids = np.zeros_like(target_halo_bin_numbers).astype('i8')
+
+    for target_bin in range(num_cells_total):
+        target_bin_mask = target_halo_bin_numbers == target_bin
+        num_target_halos_in_bin = np.count_nonzero(target_bin_mask)
+
+        if num_target_halos_in_bin > 0:
+            source_bin = get_source_bin_from_target_bin(
+                    source_bin_counts, target_bin, nhalo_min, bin_shapes)
+            source_bin_mask = source_halo_bin_numbers == source_bin
+            source_bin_indices = selection_indices[source_bin_mask]
+
+            result[target_bin_mask] = np.random.choice(
+                    source_bin_indices, num_target_halos_in_bin, replace=True)
+
+            matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
+
+    return result, matching_target_halo_ids
+
+
+
+
+
+
