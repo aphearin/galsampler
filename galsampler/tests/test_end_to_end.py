@@ -43,7 +43,7 @@ def test1_bijective_case():
     target_halos['halo_id'] = np.arange(num_target_halos).astype(int)
 
     fake_bins = np.arange(num_source_halos)
-    indices = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
+    indices, matching_target_halo_ids = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
             source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
             target_halos['halo_id'], nhalo_min, fake_bins)
 
@@ -88,7 +88,7 @@ def test2_bijective_case():
     target_halos['halo_id'] = np.arange(num_target_halos).astype(int)
 
     fake_bins = np.arange(num_source_halos)
-    indices = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
+    indices, matching_target_halo_ids = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
             source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
             target_halos['halo_id'], nhalo_min, fake_bins)
 
@@ -125,7 +125,7 @@ def test_many_galaxies_per_source_halo():
     target_halo_ids = np.arange(num_target_halos).astype('i8')
 
     nhalo_min = 5
-    indices = source_galaxy_selection_indices(source_galaxy_host_halo_id,
+    indices, matching_target_halo_ids = source_galaxy_selection_indices(source_galaxy_host_halo_id,
                 source_halo_id, source_halo_bin_number, target_halo_bin_number, target_halo_ids,
                 nhalo_min, log_mhost_bins)
     selected_galaxies_host_mass = source_galaxy_host_mass[indices]

@@ -84,6 +84,8 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
     source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
             source_halos_bin_number, target_halos_bin_number, target_halo_ids, nhalo_min, *bins)
     selected_source_halo_ids = source_halos_halo_id[source_halo_selection_indices]
+    matching_target_halo_ids = np.repeat(matching_target_halo_ids,
+            source_halos_richness[source_halo_selection_indices])
 
     #  For each selected source halo, determine the index of the first
     #  appearance of a source galaxy that resides in that halo
@@ -97,8 +99,9 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
 
     #  Call the cython kernel to calculate all relevant galaxy indices
     #  for each selected source halo
-    return source_galaxy_index_selection(representative_galaxy_selection_indices,
-                        source_galaxies_richness[representative_galaxy_selection_indices])
+    return (source_galaxy_index_selection(representative_galaxy_selection_indices,
+                        source_galaxies_richness[representative_galaxy_selection_indices]),
+        matching_target_halo_ids)
 
 
 def _check_colname_correspondence_dictionary(d, catalog, catalog_varname):
