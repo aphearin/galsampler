@@ -8,7 +8,6 @@ from ..end_to_end import source_galaxy_selection_indices
 from ..host_halo_binning import halo_bin_indices
 
 
-@pytest.mark.skip
 def test1_bijective_case():
     """
     Setup:
@@ -53,7 +52,6 @@ def test1_bijective_case():
     assert np.all(indices == np.arange(len(indices)))
 
 
-@pytest.mark.skip
 def test2_bijective_case():
     """
     Setup:
@@ -122,7 +120,7 @@ def test_many_galaxies_per_source_halo():
     assert len(source_galaxy_host_mass) == num_source_galaxies, "Bad setup of source_galaxies"
 
     #  target_halos column names must include ``bin_number``
-    num_target_halos_per_source_halo = 121
+    num_target_halos_per_source_halo = 11
     target_halo_bin_number = np.repeat(source_halo_bin_number, num_target_halos_per_source_halo)
     num_target_halos = len(target_halo_bin_number)
 
@@ -131,9 +129,14 @@ def test_many_galaxies_per_source_halo():
                 source_halo_id, source_halo_bin_number, target_halo_bin_number,
                 nhalo_min, log_mhost_bins)
     selected_galaxies_host_mass = source_galaxy_host_mass[indices]
-    correct_num_target_galaxies = int(num_source_galaxies*(num_target_halos/float(num_source_halos)))
+    num_target_galaxies = len(indices)
+    correct_num_target_galaxies = int(num_target_halos*ngals_per_source_halo)
     msg = "target_galaxies does not have correct length"
-    assert len(selected_galaxies_host_mass) == correct_num_target_galaxies, msg
+    try:
+        assert len(selected_galaxies_host_mass) == correct_num_target_galaxies
+    except AssertionError:
+        msg = ("Number of target_galaxies = {0}\n""Correct number = {1}")
+        raise ValueError(msg.format(num_target_galaxies, correct_num_target_galaxies))
 
 
 @pytest.mark.xfail
