@@ -104,7 +104,6 @@ def test_many_galaxies_per_source_halo():
     log_mhost_mids = 0.5*(log_mhost_bins[:-1] + log_mhost_bins[1:])
     num_distinct_source_halo_masses = len(log_mhost_mids)
 
-    #  source_halos column names must include ``halo_id`` and ``bin_number``
     num_source_halos_per_bin = 100
     source_halo_log_mhost = np.tile(log_mhost_mids, num_source_halos_per_bin)
     num_source_halos = len(source_halo_log_mhost)
@@ -112,14 +111,12 @@ def test_many_galaxies_per_source_halo():
     source_halo_bin_number = halo_bin_indices(log_mhost=(source_halo_log_mhost, log_mhost_bins))
     assert len(source_halo_bin_number) == num_distinct_source_halo_masses*num_source_halos_per_bin, "Bad setup of source_halos"
 
-    #  source_galaxies column names must include ``halo_id`` and ``host_halo_id``
     ngals_per_source_halo = 3
     num_source_galaxies = num_source_halos*ngals_per_source_halo
     source_galaxy_host_halo_id = np.repeat(source_halo_id, ngals_per_source_halo)
     source_galaxy_host_mass = np.repeat(source_halo_log_mhost, ngals_per_source_halo)
     assert len(source_galaxy_host_mass) == num_source_galaxies, "Bad setup of source_galaxies"
 
-    #  target_halos column names must include ``bin_number``
     num_target_halos_per_source_halo = 11
     target_halo_bin_number = np.repeat(source_halo_bin_number, num_target_halos_per_source_halo)
     num_target_halos = len(target_halo_bin_number)
@@ -140,16 +137,26 @@ def test_many_galaxies_per_source_halo():
 
 
 @pytest.mark.xfail
-def test_constant_scaleup_case():
-    """
-    """
-    raise NotImplementedError
-
-
-@pytest.mark.xfail
 def test_empty_halos_case():
     """
     """
+    #  Set up a source halo catalog with 100 halos in each mass bin
+    log_mhost_min, log_mhost_max, dlog_mhost = 10.5, 15.5, 0.5
+    log_mhost_bins = np.arange(log_mhost_min, log_mhost_max+dlog_mhost, dlog_mhost)
+    log_mhost_mids = 0.5*(log_mhost_bins[:-1] + log_mhost_bins[1:])
+    num_distinct_source_halo_masses = len(log_mhost_mids)
+
+    num_source_halos_per_bin = 100
+    source_halo_log_mhost = np.tile(log_mhost_mids, num_source_halos_per_bin)
+    num_source_halos = len(source_halo_log_mhost)
+    source_halo_id = np.arange(num_source_halos).astype(int)
+    source_halo_bin_number = halo_bin_indices(log_mhost=(source_halo_log_mhost, log_mhost_bins))
+    assert len(source_halo_bin_number) == num_distinct_source_halo_masses*num_source_halos_per_bin, "Bad setup of source_halos"
+
+    ngals_per_source_halo = 3
+    num_source_galaxies = num_source_halos*ngals_per_source_halo
+    source_galaxy_host_halo_id = np.repeat(source_halo_id, ngals_per_source_halo)
+    source_galaxy_host_mass = np.repeat(source_halo_log_mhost, ngals_per_source_halo)
+    assert len(source_galaxy_host_mass) == num_source_galaxies, "Bad setup of source_galaxies"
+
     raise NotImplementedError
-
-
