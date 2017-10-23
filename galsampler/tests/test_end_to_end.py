@@ -137,26 +137,24 @@ def test_many_galaxies_per_source_halo():
     target_halo_ids = np.arange(num_target_halos).astype('i8')
 
     nhalo_min = 5
-    indices, matching_target_halo_ids = source_galaxy_selection_indices(source_galaxy_host_halo_id,
+    selection_indices, matching_target_halo_ids = source_galaxy_selection_indices(source_galaxy_host_halo_id,
                 source_halo_id, source_halo_bin_number, target_halo_bin_number, target_halo_ids,
                 nhalo_min, log_mhost_bins)
-    selected_galaxies_source_halo_mass = source_galaxy_host_mass[indices]
-    num_target_galaxies = len(indices)
     correct_num_target_galaxies = int(num_target_halos*ngals_per_source_halo)
-    msg = "target_galaxies does not have correct length"
-    try:
-        assert len(selected_galaxies_source_halo_mass) == correct_num_target_galaxies
-    except AssertionError:
-        msg = ("Number of target_galaxies = {0}\n""Correct number = {1}")
-        raise ValueError(msg.format(num_target_galaxies, correct_num_target_galaxies))
+    assert correct_num_target_galaxies == len(matching_target_halo_ids) == len(selection_indices)
 
-    assert len(matching_target_halo_ids) == len(selected_galaxies_source_halo_mass)
     idxA, idxB = crossmatch(matching_target_halo_ids, target_halo_ids)
+    assert len(idxA) == len(matching_target_halo_ids)
     target_halo_bins = target_halo_bin_number[idxB]
     A = num_target_halos_per_source_halo*ngals_per_source_halo
     assert np.all(np.histogram(target_halo_bins)[0] == A*np.histogram(source_halo_bin_number)[0])
 
     selected_galaxies_target_halo_mass = target_halo_log_mhost[idxB]
+    a = halo_bin_indices(log_mhost=(selected_galaxies_target_halo_mass, log_mhost_bins))
+    b = halo_bin_indices(log_mhost=(source_galaxy_host_mass, log_mhost_bins))
+    assert np.all(np.histogram(a)[0] == num_target_halos_per_source_halo*np.histogram(b)[0])
+
+    selected_galaxies_source_halo_mass = source_galaxy_host_mass[selection_indices]
     assert np.allclose(selected_galaxies_source_halo_mass, selected_galaxies_target_halo_mass)
 
 

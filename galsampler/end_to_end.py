@@ -1,7 +1,7 @@
 """
 """
 import numpy as np
-from halotools.utils import crossmatch
+from halotools.utils import crossmatch, unsorting_indices
 from .utils import compute_richness
 from .source_halo_selection import source_halo_index_selection
 from .source_galaxy_selection import source_galaxy_index_selection
@@ -81,11 +81,13 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
     idxA, idxB = crossmatch(source_galaxies_host_halo_id, source_halos_halo_id)
     source_galaxies_richness = np.zeros_like(source_galaxies_host_halo_id)
     source_galaxies_richness[idxA] = source_halos_richness[idxB]
+    num_source_gals = len(source_galaxies_richness)
 
     #  Sort the source galaxies so that members of a common halo are grouped together
     idx_sorted_source_galaxies = np.argsort(source_galaxies_host_halo_id)
     source_galaxies_richness = source_galaxies_richness[idx_sorted_source_galaxies]
     source_galaxies_host_halo_id = source_galaxies_host_halo_id[idx_sorted_source_galaxies]
+    index_correspondence = np.arange(num_source_gals).astype('i8')[idx_sorted_source_galaxies]
 
     #  For each selected source halo, determine the index of the first
     #  appearance of a source galaxy that resides in that halo
@@ -99,9 +101,10 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
 
     #  Call the cython kernel to calculate all relevant galaxy indices
     #  for each selected source halo
-    return (source_galaxy_index_selection(representative_galaxy_selection_indices,
-                        source_galaxies_richness[representative_galaxy_selection_indices]),
-            matching_target_halo_ids)
+    source_galaxy_indices = source_galaxy_index_selection(representative_galaxy_selection_indices,
+                        source_galaxies_richness[representative_galaxy_selection_indices])
+
+    return source_galaxy_indices, matching_target_halo_ids
 
 
 def _check_colname_correspondence_dictionary(d, catalog, catalog_varname):
