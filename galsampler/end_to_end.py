@@ -7,35 +7,42 @@ from .source_halo_selection import source_halo_index_selection
 from .source_galaxy_selection import source_galaxy_index_selection
 
 
-def source_galaxy_selection_indices(source_galaxies_halo_id, source_galaxies_host_halo_id,
+def source_galaxy_selection_indices(source_galaxies_host_halo_id,
             source_halos_halo_id, source_halos_bin_number, target_halos_bin_number, nhalo_min,
             *bins, **kwargs):
     """
     Examples
     --------
-    source_galaxies : Numpy structured array
-        Ndarray of shape (num_source_gals, ) storing the source galaxies that
-        occupy the source halos.
-        Column names must include ``halo_id`` and ``host_halo_id``,
-        or otherwise be defined via the optional source_galaxies_colnames keyword.
+    source_galaxies_host_halo_id : ndarray
+        Numpy integer array of shape (num_source_gals, )
+        storing the ID of the host halo of each source galaxy.
+        In particular, if the galaxy occupies a subhalo of some larger host halo,
+        the value for source_galaxies_host_halo_id of that galaxy should be the
+        ID of the larger host halo.
 
-    source_halos : Numpy structured array
-        Ndarray of shape (num_source_halos, ) storing the catalog of host halos
-        that are occupied by the source galaxies.
-        Column names must include ``halo_id``, and ``bin_number``,
-        or otherwise be defined via the optional source_halos_colnames keyword.
+    source_halos_halo_id : ndarray
+        Numpy integer array of shape (num_source_halos, )
+        storing the ID of every halo in the source halo catalog.
 
-        The ``bin_number`` column can be computed using the
-        `galsampler.halo_bin_indices` function.
+        Note that it is important to include a *complete* sample of source halos,
+        including those that do not host a source galaxy.
 
-    target_halos : Numpy structured array
-        Ndarray of shape (num_target_halos, ) storing the catalog of host halos
-        that will become populated by a Monte Carlo sampling of the source galaxies.
-        Column names must include ``bin_number``, or otherwise be defined
-        via the optional target_halos_colnames keyword.
+    source_halos_bin_number : ndarray
+        Numpy integer array of shape (num_source_halos, )
+        storing the bin number assigned to every halo in the source halo catalog.
 
-        The ``bin_number`` column can be computed using the
-        `galsampler.halo_bin_indices` function.
+        Note that it is important to include a *complete* sample of source halos,
+        including those that do not host a source galaxy.
+
+        The bin_number can be computed using the `galsampler.halo_bin_indices` function,
+        `np.digitize`, or some other means.
+
+    target_halos_bin_number : ndarray
+        Numpy integer array of shape (num_target_halos, )
+        storing the bin number assigned to every halo in the target halo catalog.
+
+        The bin_number can be computed using the `galsampler.halo_bin_indices` function,
+        `np.digitize`, or some other means.
 
     nhalo_min : int
         Minimum permissible number of halos in source catalog for a cell to be
@@ -55,8 +62,8 @@ def source_galaxy_selection_indices(source_galaxies_halo_id, source_galaxies_hos
 
     #  Broadcast bin_number and richness from the source halos to the source galaxies
     idxA, idxB = crossmatch(source_galaxies_host_halo_id, source_halos_halo_id)
-    source_galaxies_bin_number = np.zeros_like(source_galaxies_halo_id)
-    source_galaxies_richness = np.zeros_like(source_galaxies_halo_id)
+    source_galaxies_bin_number = np.zeros_like(source_galaxies_host_halo_id)
+    source_galaxies_richness = np.zeros_like(source_galaxies_host_halo_id)
     source_galaxies_bin_number[idxA] = source_halos_bin_number[idxB]
     source_galaxies_richness[idxA] = source_halos_richness[idxB]
 
@@ -65,7 +72,6 @@ def source_galaxy_selection_indices(source_galaxies_halo_id, source_galaxies_hos
     source_galaxies_bin_number = source_galaxies_bin_number[idx_sorted_source_galaxies]
     source_galaxies_richness = source_galaxies_richness[idx_sorted_source_galaxies]
     source_galaxies_bin_number = source_galaxies_bin_number[idx_sorted_source_galaxies]
-    source_galaxies_halo_id = source_galaxies_halo_id[idx_sorted_source_galaxies]
     source_galaxies_host_halo_id = source_galaxies_host_halo_id[idx_sorted_source_galaxies]
 
     #  For each target halo, calculate the index of the source halo whose resident
@@ -76,7 +82,7 @@ def source_galaxy_selection_indices(source_galaxies_halo_id, source_galaxies_hos
     #  For each selected source halo, determine the index of the first
     #  appearance of a source galaxy that resides in that halo
     #  The algorithm below is predicated upon the source galaxies being sorted by ``host_halo_id``
-    uval, indx_uval, counts = np.unique( source_galaxies_host_halo_id,
+    uval, indx_uval, counts = np.unique(source_galaxies_host_halo_id,
                 return_index=True, return_counts=True)
     selected_halo_ids = source_halos_halo_id[source_halo_selection_indices]
     __, idxB = crossmatch(selected_halo_ids, uval)
