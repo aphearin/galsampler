@@ -8,6 +8,7 @@ from ..end_to_end import source_galaxy_selection_indices
 from ..host_halo_binning import halo_bin_indices
 
 
+@pytest.mark.skip
 def test1_bijective_case():
     """
     Setup:
@@ -52,6 +53,7 @@ def test1_bijective_case():
     assert np.all(indices == np.arange(len(indices)))
 
 
+@pytest.mark.skip
 def test2_bijective_case():
     """
     Setup:
@@ -95,8 +97,8 @@ def test2_bijective_case():
     assert np.all(selected_galaxies == np.repeat(source_galaxies, 5))
 
 
-def test3():
-    """
+def test_many_galaxies_per_source_halo():
+    """ Test case of mutliple source galaxies per source halo
     """
     #  Set up a source halo catalog with 100 halos in each mass bin
     log_mhost_min, log_mhost_max, dlog_mhost = 10.5, 15.5, 0.5
