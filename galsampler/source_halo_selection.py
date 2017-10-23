@@ -5,8 +5,8 @@ import numpy as np
 __all__ = ('source_halo_index_selection', )
 
 
-def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers,
-        nhalo_min, *bins):
+def source_halo_index_selection(source_halo_bin_numbers,
+            target_halo_bin_numbers, target_halo_ids, nhalo_min, *bins):
     """ Randomly select the index of a host halo from the source catalog
     for every halo in the target halo catalog.
 
@@ -27,6 +27,10 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
         of every halo in the target catalog. This bin number can be calculated
         using the `halo_bin_indices` function.
 
+    target_halo_ids : ndarray
+        Numpy integer array of shape (num_target_halos, )
+        storing the ID of every halo in the target halo catalog.
+
     nhalo_min : int
         Minimum permissible number of halos in source catalog for a cell to be
         considered well-sampled
@@ -40,6 +44,10 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
         Numpy integer array of shape (num_target_halos, ) storing the index of
         the halo selected from the source catalog whose galaxies will populate
         the target halo
+
+    matching_target_halo_ids : ndarray
+        Numpy integer array of shape (num_target_halos, ) storing the halo ID
+        corresponding to each selected source halo
     """
     bin_shapes = tuple(len(arr) for arr in bins)
     num_cells_total = np.product(bin_shapes)
@@ -55,6 +63,7 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
     _check_source_binning(source_bin_counts, nhalo_min)
 
     result = np.zeros_like(target_halo_bin_numbers).astype('i8')
+    matching_target_halo_ids = np.zeros_like(target_halo_bin_numbers).astype('i8')
 
     for target_bin in range(num_cells_total):
         target_bin_mask = target_halo_bin_numbers == target_bin
@@ -69,8 +78,9 @@ def source_halo_index_selection(source_halo_bin_numbers, target_halo_bin_numbers
             randoms = np.random.randint(low_sorted_source_idx, high_sorted_source_idx, num_target_halos)
 
             result[target_bin_mask] = selection_indices[randoms]
+            matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
 
-    return result
+    return result, matching_target_halo_ids
 
 
 def get_source_bin_from_target_bin(source_bin_counts, bin_number, nhalo_min, bin_shapes):

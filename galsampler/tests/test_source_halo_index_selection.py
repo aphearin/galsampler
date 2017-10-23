@@ -22,9 +22,11 @@ def test_source_halo_index_selection_no_missing_source_cells():
     with NumpyRNGContext(43):
         source_halo_bin_numbers = np.random.randint(0, num_bins, num_sources)
         target_halo_bin_numbers = np.random.randint(0, num_bins, num_target)
+        target_halo_ids = np.arange(num_target).astype('i8')
 
-    source_indices = source_halo_index_selection(
-            source_halo_bin_numbers, target_halo_bin_numbers, nhalo_min, bin1, bin2)
+    source_indices, matching_target_halo_ids = source_halo_index_selection(
+            source_halo_bin_numbers, target_halo_bin_numbers, target_halo_ids,
+            nhalo_min, bin1, bin2)
 
     unique_target_bins = np.unique(target_halo_bin_numbers)
     for ibin in unique_target_bins:
@@ -43,9 +45,10 @@ def test2_source_halo_index_selection_no_missing_source_cells():
     with NumpyRNGContext(43):
         source_halo_bin_numbers = np.random.randint(0, num_bins, num_sources)
         target_halo_bin_numbers = np.random.randint(0, num_bins, num_target)
+        target_halo_ids = np.arange(num_target).astype('i8')
 
-    source_indices = source_halo_index_selection(
-            source_halo_bin_numbers, target_halo_bin_numbers, nhalo_min, bin1)
+    source_indices, matching_target_halo_ids = source_halo_index_selection(
+            source_halo_bin_numbers, target_halo_bin_numbers, target_halo_ids, nhalo_min, bin1)
 
     unique_target_bins = np.unique(target_halo_bin_numbers)
     for ibin in unique_target_bins:
@@ -65,10 +68,11 @@ def test_source_halo_index_selection_missing_source_cells():
     with NumpyRNGContext(43):
         source_halo_bin_numbers = np.random.randint(0, num_bins, num_sources)
         target_halo_bin_numbers = np.random.randint(0, num_bins, num_target)
+        target_halo_ids = np.arange(num_target).astype('i8')
 
     with pytest.raises(ValueError) as err:
         source_indices = source_halo_index_selection(
-                source_halo_bin_numbers, target_halo_bin_numbers, nhalo_min, bin1, bin2)
+                source_halo_bin_numbers, target_halo_bin_numbers, target_halo_ids, nhalo_min, bin1, bin2)
 
     substr = "The fraction of cells in the source catalog"
     assert substr in err.value.args[0]

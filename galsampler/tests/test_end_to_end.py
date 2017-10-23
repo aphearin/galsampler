@@ -36,15 +36,16 @@ def test1_bijective_case():
     source_galaxies = np.zeros(num_galaxies, dtype=source_galaxies_dtype)
     source_galaxies['host_halo_id'] = np.arange(num_galaxies).astype(int)
 
-    target_halo_dt_list = [(str('bin_number'), str('i4'))]
+    target_halo_dt_list = [(str('bin_number'), str('i4')), (str('halo_id'), str('i8'))]
     target_halos_dtype = np.dtype(target_halo_dt_list)
     target_halos = np.zeros(num_target_halos, dtype=target_halos_dtype)
     target_halos['bin_number'] = np.arange(num_target_halos).astype(int)
+    target_halos['halo_id'] = np.arange(num_target_halos).astype(int)
 
     fake_bins = np.arange(num_source_halos)
     indices = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
-            source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'], nhalo_min,
-            fake_bins)
+            source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
+            target_halos['halo_id'], nhalo_min, fake_bins)
 
     selected_galaxies = source_galaxies[indices]
     assert len(selected_galaxies) == len(source_galaxies)
@@ -80,15 +81,16 @@ def test2_bijective_case():
     source_galaxies = np.zeros(num_galaxies, dtype=source_galaxies_dtype)
     source_galaxies['host_halo_id'] = np.arange(num_galaxies).astype(int)
 
-    target_halo_dt_list = [(str('bin_number'), str('i4'))]
+    target_halo_dt_list = [(str('bin_number'), str('i4')), (str('halo_id'), str('i8'))]
     target_halos_dtype = np.dtype(target_halo_dt_list)
     target_halos = np.zeros(num_target_halos, dtype=target_halos_dtype)
     target_halos['bin_number'] = np.repeat(source_halos['bin_number'], 5)
+    target_halos['halo_id'] = np.arange(num_target_halos).astype(int)
 
     fake_bins = np.arange(num_source_halos)
     indices = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
-            source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'], nhalo_min,
-            fake_bins)
+            source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
+            target_halos['halo_id'], nhalo_min, fake_bins)
 
     selected_galaxies = source_galaxies[indices]
     assert len(selected_galaxies) == num_target_halos
@@ -120,10 +122,11 @@ def test_many_galaxies_per_source_halo():
     num_target_halos_per_source_halo = 11
     target_halo_bin_number = np.repeat(source_halo_bin_number, num_target_halos_per_source_halo)
     num_target_halos = len(target_halo_bin_number)
+    target_halo_ids = np.arange(num_target_halos).astype('i8')
 
     nhalo_min = 5
     indices = source_galaxy_selection_indices(source_galaxy_host_halo_id,
-                source_halo_id, source_halo_bin_number, target_halo_bin_number,
+                source_halo_id, source_halo_bin_number, target_halo_bin_number, target_halo_ids,
                 nhalo_min, log_mhost_bins)
     selected_galaxies_host_mass = source_galaxy_host_mass[indices]
     num_target_galaxies = len(indices)

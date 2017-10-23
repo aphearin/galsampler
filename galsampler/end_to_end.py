@@ -8,8 +8,9 @@ from .source_galaxy_selection import source_galaxy_index_selection
 
 
 def source_galaxy_selection_indices(source_galaxies_host_halo_id,
-            source_halos_halo_id, source_halos_bin_number, target_halos_bin_number, nhalo_min,
-            *bins, **kwargs):
+            source_halos_halo_id, source_halos_bin_number,
+            target_halos_bin_number, target_halo_ids,
+            nhalo_min, *bins, **kwargs):
     """
     Examples
     --------
@@ -44,6 +45,10 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
         The bin_number can be computed using the `galsampler.halo_bin_indices` function,
         `np.digitize`, or some other means.
 
+    target_halo_ids : ndarray
+        Numpy integer array of shape (num_target_halos, )
+        storing the ID of every halo in the target halo catalog.
+
     nhalo_min : int
         Minimum permissible number of halos in source catalog for a cell to be
         considered well-sampled
@@ -76,8 +81,8 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
 
     #  For each target halo, calculate the index of the source halo whose resident
     #  galaxies will populate the target halo.
-    source_halo_selection_indices = source_halo_index_selection(
-            source_halos_bin_number, target_halos_bin_number, nhalo_min, *bins)
+    source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
+            source_halos_bin_number, target_halos_bin_number, target_halo_ids, nhalo_min, *bins)
     selected_source_halo_ids = source_halos_halo_id[source_halo_selection_indices]
 
     #  For each selected source halo, determine the index of the first
