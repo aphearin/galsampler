@@ -69,20 +69,6 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
     source_halos_richness = compute_richness(
                 source_halos_halo_id, source_galaxies_host_halo_id)
 
-    #  Broadcast bin_number and richness from the source halos to the source galaxies
-    idxA, idxB = crossmatch(source_galaxies_host_halo_id, source_halos_halo_id)
-    source_galaxies_bin_number = np.zeros_like(source_galaxies_host_halo_id)
-    source_galaxies_richness = np.zeros_like(source_galaxies_host_halo_id)
-    source_galaxies_bin_number[idxA] = source_halos_bin_number[idxB]
-    source_galaxies_richness[idxA] = source_halos_richness[idxB]
-
-    #  Sort the source galaxies so that members of a common halo are grouped together
-    idx_sorted_source_galaxies = np.argsort(source_galaxies_host_halo_id)
-    source_galaxies_bin_number = source_galaxies_bin_number[idx_sorted_source_galaxies]
-    source_galaxies_richness = source_galaxies_richness[idx_sorted_source_galaxies]
-    source_galaxies_bin_number = source_galaxies_bin_number[idx_sorted_source_galaxies]
-    source_galaxies_host_halo_id = source_galaxies_host_halo_id[idx_sorted_source_galaxies]
-
     #  For each target halo, calculate the index of the source halo whose resident
     #  galaxies will populate the target halo.
     source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
@@ -90,6 +76,16 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
     selected_source_halo_ids = source_halos_halo_id[source_halo_selection_indices]
     matching_target_halo_ids = np.repeat(matching_target_halo_ids,
             source_halos_richness[source_halo_selection_indices])
+
+    #  Broadcast richness from the source halos to the source galaxies
+    idxA, idxB = crossmatch(source_galaxies_host_halo_id, source_halos_halo_id)
+    source_galaxies_richness = np.zeros_like(source_galaxies_host_halo_id)
+    source_galaxies_richness[idxA] = source_halos_richness[idxB]
+
+    #  Sort the source galaxies so that members of a common halo are grouped together
+    idx_sorted_source_galaxies = np.argsort(source_galaxies_host_halo_id)
+    source_galaxies_richness = source_galaxies_richness[idx_sorted_source_galaxies]
+    source_galaxies_host_halo_id = source_galaxies_host_halo_id[idx_sorted_source_galaxies]
 
     #  For each selected source halo, determine the index of the first
     #  appearance of a source galaxy that resides in that halo

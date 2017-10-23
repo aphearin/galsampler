@@ -131,8 +131,8 @@ def test_many_galaxies_per_source_halo():
     assert len(source_galaxy_host_mass) == num_source_galaxies, "Bad setup of source_galaxies"
 
     num_target_halos_per_source_halo = 11
-    target_halo_bin_number = np.repeat(source_halo_bin_number, num_target_halos_per_source_halo)
     target_halo_log_mhost = np.repeat(source_halo_log_mhost, num_target_halos_per_source_halo)
+    target_halo_bin_number = halo_bin_indices(log_mhost=(target_halo_log_mhost, log_mhost_bins))
     num_target_halos = len(target_halo_bin_number)
     target_halo_ids = np.arange(num_target_halos).astype('i8')
 
@@ -156,7 +156,6 @@ def test_many_galaxies_per_source_halo():
     A = num_target_halos_per_source_halo*ngals_per_source_halo
     assert np.all(np.histogram(target_halo_bins)[0] == A*np.histogram(source_halo_bin_number)[0])
 
-    idxA, idxB = crossmatch(matching_target_halo_ids, target_halo_ids)
     selected_galaxies_target_halo_mass = target_halo_log_mhost[idxB]
     assert np.allclose(selected_galaxies_source_halo_mass, selected_galaxies_target_halo_mass)
 
