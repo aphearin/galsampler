@@ -47,7 +47,7 @@ def source_halo_index_selection(source_halo_bin_numbers,
 
     matching_target_halo_ids : ndarray
         Numpy integer array of shape (num_target_halos, ) storing the halo ID
-        corresponding to each selected source halo
+        of the target halo corresponding to each selected source halo
     """
     bin_shapes = tuple(len(arr) for arr in bins)
     num_cells_total = np.product(bin_shapes)

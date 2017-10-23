@@ -61,6 +61,10 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
     indices : ndarray
         Numpy integer array of shape (num_target_gals, ) storing the indices
         of the selected galaxies
+
+    matching_target_halo_ids : ndarray
+        Numpy integer array of shape (num_target_gals, ) storing the halo ID
+        of the target halo hosting each selected source galaxy
     """
     source_halos_richness = compute_richness(
                 source_halos_halo_id, source_galaxies_host_halo_id)
@@ -101,7 +105,7 @@ def source_galaxy_selection_indices(source_galaxies_host_halo_id,
     #  for each selected source halo
     return (source_galaxy_index_selection(representative_galaxy_selection_indices,
                         source_galaxies_richness[representative_galaxy_selection_indices]),
-        matching_target_halo_ids)
+            matching_target_halo_ids)
 
 
 def _check_colname_correspondence_dictionary(d, catalog, catalog_varname):

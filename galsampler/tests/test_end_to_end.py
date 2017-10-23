@@ -4,6 +4,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import pytest
 import numpy as np
+from halotools.utils import crossmatch
 from ..end_to_end import source_galaxy_selection_indices
 from ..host_halo_binning import halo_bin_indices
 
@@ -52,6 +53,11 @@ def test1_bijective_case():
     assert np.all(selected_galaxies['host_halo_id'] == source_galaxies['host_halo_id'])
     assert np.all(indices == np.arange(len(indices)))
 
+    assert len(matching_target_halo_ids) == len(selected_galaxies)
+    idxA, idxB = crossmatch(matching_target_halo_ids, target_halos['halo_id'])
+    target_halo_bins = target_halos['bin_number'][idxB]
+    assert np.all(np.histogram(target_halo_bins)[0] == np.histogram(source_halos['bin_number'])[0])
+
 
 def test2_bijective_case():
     """
@@ -96,6 +102,11 @@ def test2_bijective_case():
     assert len(selected_galaxies) == num_target_halos
     assert np.all(selected_galaxies == np.repeat(source_galaxies, 5))
 
+    assert len(matching_target_halo_ids) == len(selected_galaxies)
+    idxA, idxB = crossmatch(matching_target_halo_ids, target_halos['halo_id'])
+    target_halo_bins = target_halos['bin_number'][idxB]
+    assert np.all(np.histogram(target_halo_bins)[0] == 5*np.histogram(source_halos['bin_number'])[0])
+
 
 def test_many_galaxies_per_source_halo():
     """ Test case of mutliple source galaxies per source halo
@@ -137,6 +148,12 @@ def test_many_galaxies_per_source_halo():
     except AssertionError:
         msg = ("Number of target_galaxies = {0}\n""Correct number = {1}")
         raise ValueError(msg.format(num_target_galaxies, correct_num_target_galaxies))
+
+    assert len(matching_target_halo_ids) == len(selected_galaxies_host_mass)
+    idxA, idxB = crossmatch(matching_target_halo_ids, target_halo_ids)
+    target_halo_bins = target_halo_bin_number[idxB]
+    A = num_target_halos_per_source_halo*ngals_per_source_halo
+    assert np.all(np.histogram(target_halo_bins)[0] == A*np.histogram(source_halo_bin_number)[0])
 
 
 @pytest.mark.xfail
