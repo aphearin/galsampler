@@ -2,9 +2,11 @@
 """
 import numpy as np
 import pytest
+from halotools.utils import crossmatch
 
 from ..source_halo_selection import source_halo_index_selection, get_source_bin_from_target_bin
 from ..numpy_random_context import NumpyRNGContext
+from ..host_halo_binning import halo_bin_indices
 
 
 __all__ = ('test_source_halo_index_selection_no_missing_source_cells', )
@@ -86,3 +88,42 @@ def test_get_source_bin_from_target_bin():
     nhalo_min = 50
     result = get_source_bin_from_target_bin(source_bin_counts, bin_number, nhalo_min, bin_shapes)
     assert result == 1
+
+
+def test_bin_distribution_recovery():
+    log_mhost_min, log_mhost_max, dlog_mhost = 10.5, 15.5, 0.5
+    log_mhost_bins = np.arange(log_mhost_min, log_mhost_max+dlog_mhost, dlog_mhost)
+    log_mhost_mids = 0.5*(log_mhost_bins[:-1] + log_mhost_bins[1:])
+
+    num_source_halos_per_bin = 10
+    source_halo_log_mhost = np.tile(log_mhost_mids, num_source_halos_per_bin)
+    num_source_halos = len(source_halo_log_mhost)
+    source_halo_id = np.arange(num_source_halos).astype(int)
+    source_halo_bin_number = halo_bin_indices(log_mhost=(source_halo_log_mhost, log_mhost_bins))
+
+    ngals_per_source_halo = 3
+    num_source_galaxies = num_source_halos*ngals_per_source_halo
+    source_galaxy_host_halo_id = np.repeat(source_halo_id, ngals_per_source_halo)
+    source_galaxy_host_mass = np.repeat(source_halo_log_mhost, ngals_per_source_halo)
+
+    num_target_halos_per_source_halo = 11
+    target_halo_bin_number = np.repeat(source_halo_bin_number, num_target_halos_per_source_halo)
+    target_halo_log_mhost = np.repeat(source_halo_log_mhost, num_target_halos_per_source_halo)
+    num_target_halos = len(target_halo_bin_number)
+    target_halo_ids = np.arange(num_target_halos).astype('i8')
+
+    nhalo_min = 5
+    source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
+            source_halo_bin_number, target_halo_bin_number, target_halo_ids, nhalo_min, log_mhost_bins)
+
+    idxA, idxB = crossmatch(matching_target_halo_ids, target_halo_ids)
+    target_mass = target_halo_log_mhost[idxB]
+    source_mass = source_galaxy_host_mass[source_halo_selection_indices]
+    assert np.allclose(target_mass, source_mass)
+
+
+
+
+
+
+
