@@ -95,7 +95,6 @@ def get_source_bin_from_target_bin(source_bin_counts, bin_number, nhalo_min, bin
         seq = list((bin_number, taxicab_metric(idx, np.unravel_index(bin_number, bin_shapes)))
             for bin_number in range(num_cells_total) if source_bin_counts[bin_number] >= nhalo_min)
         sorted_seq = sorted(seq, key=lambda s: s[1])
-        print("sorted_seq = {0}".format(sorted_seq))
         return sorted_seq[0][0]
 
 
