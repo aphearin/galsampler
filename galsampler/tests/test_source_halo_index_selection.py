@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 from halotools.utils import crossmatch
+from astropy.utils.misc import NumpyRNGContext
 
 from ..source_halo_selection import source_halo_index_selection, get_source_bin_from_target_bin
-from ..numpy_random_context import NumpyRNGContext
 from ..host_halo_binning import halo_bin_indices
 
 

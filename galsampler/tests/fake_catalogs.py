@@ -6,7 +6,7 @@ import numpy as np
 from scipy.special import erf
 from scipy.stats import poisson
 
-from ..numpy_random_context import NumpyRNGContext
+from astropy.utils.misc import NumpyRNGContext
 
 __all__ = ('fake_source_galaxy_catalog', 'fake_target_halo_catalog')
 
