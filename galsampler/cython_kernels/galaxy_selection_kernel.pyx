@@ -6,7 +6,7 @@ cimport cython
 import numpy as np
 
 
-__all__ = ('source_galaxy_index_selection_kernel', 'alt_galaxy_selection_kernel')
+__all__ = ('source_galaxy_index_selection_kernel', 'galaxy_selection_kernel')
 
 
 @cython.boundscheck(False)
@@ -39,7 +39,7 @@ def source_galaxy_index_selection_kernel(long[:] idx, long[:] n):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
-def alt_galaxy_selection_kernel(long[:] first_source_gal_indices, int[:] richness, int ngal_tot):
+def galaxy_selection_kernel(long[:] first_source_gal_indices, int[:] richness, int ngal_tot):
     """
     """
     cdef long[:] result = np.zeros(ngal_tot).astype('i8')

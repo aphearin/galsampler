@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from halotools.utils import crossmatch
 
-from ..source_halo_selection import source_halo_index_selection, get_source_bin_from_target_bin, alt_source_halo_index_selection
+from ..source_halo_selection import source_halo_index_selection, get_source_bin_from_target_bin
 from ..numpy_random_context import NumpyRNGContext
 from ..host_halo_binning import halo_bin_indices
 
@@ -122,7 +122,7 @@ def test_bin_distribution_recovery():
     target_halo_ids = np.arange(num_target_halos).astype('i8')
 
     nhalo_min = 5
-    source_halo_selection_indices, matching_target_halo_ids = alt_source_halo_index_selection(
+    source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
             source_halo_bin_number, target_halo_bin_number, target_halo_ids, nhalo_min, log_mhost_bins)
 
     idxA, idxB = crossmatch(matching_target_halo_ids, target_halo_ids)

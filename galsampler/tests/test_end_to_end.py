@@ -5,9 +5,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import pytest
 import numpy as np
 from halotools.utils import crossmatch
-from ..end_to_end import source_galaxy_selection_indices, alt_source_galaxy_selection_indices
+from ..end_to_end import source_galaxy_selection_indices
 from ..host_halo_binning import halo_bin_indices
-from ..utils import compute_richness
 
 
 def test1_bijective_case():
@@ -46,7 +45,7 @@ def test1_bijective_case():
 
     fake_bins = np.arange(-0.5, num_source_halos+0.5, 1)
 
-    _result = alt_source_galaxy_selection_indices(source_galaxies['host_halo_id'],
+    _result = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
             source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
             target_halos['halo_id'], nhalo_min, fake_bins)
     indices, target_galaxy_target_halo_ids, target_galaxy_source_halo_ids = _result
@@ -100,7 +99,7 @@ def test2_bijective_case():
     # indices, matching_target_halo_ids = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
     #         source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
     #         target_halos['halo_id'], nhalo_min, fake_bins)
-    _result = alt_source_galaxy_selection_indices(source_galaxies['host_halo_id'],
+    _result = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
             source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
             target_halos['halo_id'], nhalo_min, fake_bins)
     indices, target_galaxy_target_halo_ids, target_galaxy_source_halo_ids = _result
@@ -144,7 +143,7 @@ def test_many_galaxies_per_source_halo():
     target_halo_ids = np.arange(num_target_halos).astype('i8')
 
     nhalo_min = 5
-    _result = alt_source_galaxy_selection_indices(source_galaxy_host_halo_id,
+    _result = source_galaxy_selection_indices(source_galaxy_host_halo_id,
             source_halo_bin_number, source_halo_id, target_halo_bin_number,
             target_halo_ids, nhalo_min, log_mhost_bins)
     selection_indices, target_galaxy_target_halo_ids, target_galaxy_source_halo_ids = _result
@@ -199,7 +198,7 @@ def test_empty_halos_case():
     target_halo_ids = np.arange(num_target_halos).astype('i8')
 
     nhalo_min = 5
-    _result = alt_source_galaxy_selection_indices(source_galaxy_host_halo_id,
+    _result = source_galaxy_selection_indices(source_galaxy_host_halo_id,
             source_halo_bin_number, source_halo_id, target_halo_bin_number,
             target_halo_ids, nhalo_min, log_mhost_bins)
     selection_indices, target_galaxy_target_halo_ids, target_galaxy_source_halo_ids = _result
