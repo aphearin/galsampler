@@ -46,9 +46,6 @@ def test1_bijective_case():
 
     fake_bins = np.arange(-0.5, num_source_halos+0.5, 1)
 
-    # indices, matching_target_halo_ids = source_galaxy_selection_indices(source_galaxies['host_halo_id'],
-    #         source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
-    #         target_halos['halo_id'], nhalo_min, fake_bins)
     _result = alt_source_galaxy_selection_indices(source_galaxies['host_halo_id'],
             source_halos['halo_id'], source_halos['bin_number'], target_halos['bin_number'],
             target_halos['halo_id'], nhalo_min, fake_bins)
@@ -169,6 +166,13 @@ def test_many_galaxies_per_source_halo():
     selected_galaxies_source_halo_mass = source_galaxy_host_mass[selection_indices]
     assert np.allclose(selected_galaxies_source_halo_mass, selected_galaxies_target_halo_mass)
 
+    nskip = 500
+    gen = zip(target_galaxy_target_halo_ids[::nskip], target_galaxy_source_halo_ids[::nskip])
+    for source_id, target_id in gen:
+        source_mask = source_halo_id == source_id
+        target_mask = target_halo_ids == target_id
+        assert np.allclose(source_halo_log_mhost[source_mask], target_halo_log_mhost[target_mask])
+
 
 def test_empty_halos_case():
     """
@@ -184,9 +188,9 @@ def test_empty_halos_case():
     source_halo_id = np.arange(num_source_halos).astype(int)
     source_halo_bin_number = halo_bin_indices(log_mhost=(source_halo_log_mhost, log_mhost_bins))
 
-    source_halo_occupations = np.tile([0, 3], int(num_source_halos/2))
-    source_galaxy_host_halo_id = np.repeat(source_halo_id, source_halo_occupations)
-    source_galaxy_host_mass = np.repeat(source_halo_log_mhost, source_halo_occupations)
+    source_halo_richness = np.tile([0, 3], int(num_source_halos/2))
+    source_galaxy_host_halo_id = np.repeat(source_halo_id, source_halo_richness)
+    source_galaxy_host_mass = np.repeat(source_halo_log_mhost, source_halo_richness)
 
     num_target_halos_per_source_halo = 11
     target_halo_bin_number = np.repeat(source_halo_bin_number, num_target_halos_per_source_halo)
@@ -205,3 +209,14 @@ def test_empty_halos_case():
     idxA, idxB = crossmatch(target_galaxy_target_halo_ids, target_halo_ids)
     selected_galaxies_target_halo_mass = target_halo_log_mhost[idxB]
     assert np.allclose(selected_galaxies_source_halo_mass, selected_galaxies_target_halo_mass)
+
+    num_source_galaxies = len(source_galaxy_host_mass)
+    num_target_galaxies = len(selection_indices)
+
+    nskip = 500
+    gen = zip(target_galaxy_target_halo_ids[::nskip], target_galaxy_source_halo_ids[::nskip])
+    for source_id, target_id in gen:
+        source_mask = source_halo_id == source_id
+        target_mask = target_halo_ids == target_id
+        assert np.allclose(source_halo_log_mhost[source_mask], target_halo_log_mhost[target_mask])
+
