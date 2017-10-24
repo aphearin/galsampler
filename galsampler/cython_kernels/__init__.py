@@ -1,1 +1,1 @@
-from .galaxy_selection_kernel import source_galaxy_index_selection_kernel
+from .galaxy_selection_kernel import *
