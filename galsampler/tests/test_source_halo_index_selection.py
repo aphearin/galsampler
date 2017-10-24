@@ -139,7 +139,7 @@ def test_bin_distribution_recovery():
     assert np.allclose(target_mass, source_mass)
 
 
-def test_target_id_consistency():
+def test_source_vs_target_halo_mass_consistency1():
     """ Proceeding halo by halo, ensure that the target halo and its matching source halo
     have identical mass when there exists a unique mass per bin
     """
@@ -171,4 +171,47 @@ def test_target_id_consistency():
         source_mask = source_halo_ids == source_id
         target_mask = target_halo_ids == target_id
         assert np.all(source_halo_log_mhost[source_mask] == target_halo_log_mhost[target_mask])
+
+
+def test_source_vs_target_halo_mass_consistency2():
+    """ Proceeding halo by halo, ensure that the target halo and its matching source halo
+    have identical mass except in the lowest mass source bin, which is empty, in which case
+    the mass of the source halo should be the next lowest.
+    """
+    log_mhost_min, log_mhost_max, dlog_mhost = 10.5, 15.5, 0.5
+    log_mhost_bins = np.arange(log_mhost_min, log_mhost_max+dlog_mhost, dlog_mhost)
+    log_mhost_mids = 0.5*(log_mhost_bins[:-1] + log_mhost_bins[1:])
+
+    num_source_halos_per_bin = 10
+    source_halo_log_mhost = np.tile(log_mhost_mids[1:], num_source_halos_per_bin)
+    source_halo_bin_number = halo_bin_indices(log_mhost=(source_halo_log_mhost, log_mhost_bins))
+    num_source_halos = len(source_halo_bin_number)
+    source_halo_ids = np.arange(num_source_halos).astype('i8')
+    assert np.min(source_halo_bin_number) == 1
+
+    num_target_halos_per_source_halo = 11
+    num_target_halos_per_bin = num_target_halos_per_source_halo*num_source_halos_per_bin
+    target_halo_log_mhost = np.tile(log_mhost_mids, num_target_halos_per_bin)
+    target_halo_bin_number = halo_bin_indices(log_mhost=(target_halo_log_mhost, log_mhost_bins))
+    num_target_halos = len(target_halo_bin_number)
+    target_halo_ids = np.arange(num_target_halos).astype('i8')
+    assert np.min(target_halo_bin_number) == 0
+
+    nhalo_min = 5
+    source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
+            source_halo_bin_number, target_halo_bin_number, target_halo_ids, nhalo_min, log_mhost_bins)
+
+    selected_source_halo_ids = source_halo_ids[source_halo_selection_indices]
+    assert len(selected_source_halo_ids) == len(matching_target_halo_ids)
+
+    gen = zip(selected_source_halo_ids, matching_target_halo_ids)
+    for source_id, target_id in gen:
+        source_mask = source_halo_ids == source_id
+        target_mask = target_halo_ids == target_id
+        source_halo_mass = source_halo_log_mhost[source_mask][0]
+        target_halo_mass = target_halo_log_mhost[target_mask][0]
+        if target_halo_mass == log_mhost_mids[0]:
+            assert source_halo_mass == log_mhost_mids[1]
+        else:
+            assert target_halo_mass == source_halo_mass
 
