@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import pytest
 import numpy as np
 from halotools.utils import crossmatch
-from ..end_to_end import source_galaxy_selection_indices
+from ..source_galaxy_selection import source_galaxy_selection_indices
 from ..host_halo_binning import halo_bin_indices
 
 
