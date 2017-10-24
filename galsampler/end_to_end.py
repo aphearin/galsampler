@@ -120,7 +120,39 @@ def _check_colname_correspondence_dictionary(d, catalog, catalog_varname):
             raise KeyError(msg.format(catalog_varname, value, keyword_name))
 
 
-def f():
+def alt_source_galaxy_selection_indices(source_galaxies_host_halo_id,
+            source_halos_halo_id, source_halos_bin_number,
+            target_halos_bin_number, target_halo_ids,
+            nhalo_min, *bins, **kwargs):
     """
     """
-    pass
+    #  Sort the source galaxies so that members of a common halo are grouped together
+    idx_sorted_source_galaxies = np.argsort(source_galaxies_host_halo_id)
+    sorted_source_galaxies_host_halo_id = source_galaxies_host_halo_id[idx_sorted_source_galaxies]
+    num_source_gals = len(sorted_source_galaxies_host_halo_id)
+
+    source_halos_richness = compute_richness(
+                source_halos_halo_id, sorted_source_galaxies_host_halo_id)
+
+    uval_gals, indx_uval_gals = np.unique(sorted_source_galaxies_host_halo_id, return_index=True)
+    idxA, idxB = crossmatch(source_halos_halo_id, uval_gals)
+    num_source_halos = len(source_halos_halo_id)
+    source_halo_sorted_source_galaxies_indices = np.zeros(num_source_halos) - 1
+    source_halo_sorted_source_galaxies_indices[idxA] = indx_uval_gals[idxB]
+
+    #  For each target halo, calculate the index of the source halo whose resident
+    #  galaxies will populate the target halo.
+    source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
+            source_halos_bin_number, target_halos_bin_number, target_halo_ids, nhalo_min, *bins)
+    selected_source_halo_ids = source_halos_halo_id[source_halo_selection_indices]
+    selected_source_halo_richness = source_halos_richness[source_halo_selection_indices]
+    target_galaxy_target_halo_ids = np.repeat(matching_target_halo_ids, selected_source_halo_richness)
+
+    selected_source_halo_sorted_source_galaxies_indices = (
+                source_halo_sorted_source_galaxies_indices[source_halo_selection_indices])
+    #  For every target halo, we now know the richness, the index of the source halo,
+    #  and also the index of the corresponding galaxy catalog. That should be enough to
+    #  directly call a to-be-written kernel, transform the indices of the sorted galaxies
+    #  back to the indices of the unsorted catalog, and be done
+
+    raise NotImplementedError
