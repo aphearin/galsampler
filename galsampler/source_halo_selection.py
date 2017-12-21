@@ -35,7 +35,7 @@ def _check_source_binning(source_bin_counts, nhalo_min, frac_good_required=0.5):
 
 
 def source_halo_index_selection(source_halo_bin_numbers,
-            target_halo_bin_numbers, target_halo_ids, nhalo_min, *bins):
+            target_halo_bin_numbers, target_halo_ids, nhalo_min, *bins, **kwargs):
     """ Randomly select the index of a host halo from the source catalog
     for every halo in the target halo catalog.
 
@@ -78,6 +78,8 @@ def source_halo_index_selection(source_halo_bin_numbers,
         Numpy integer array of shape (num_target_halos, ) storing the halo ID
         of the target halo corresponding to each selected source halo
     """
+    intra_bin_selection_method = kwargs.get('intra_bin_selection_method', 'random')
+
     num_source_halos = len(source_halo_bin_numbers)
     selection_indices = np.arange(num_source_halos).astype('i8')
 
@@ -101,10 +103,15 @@ def source_halo_index_selection(source_halo_bin_numbers,
             source_bin_mask = source_halo_bin_numbers == source_bin
             source_bin_indices = selection_indices[source_bin_mask]
 
-            result[target_bin_mask] = select_source_halos_within_bin(
-                        source_bin_indices, num_target_halos_in_bin)
-
-            matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
+            if intra_bin_selection_method == 'random':
+                result[target_bin_mask] = select_source_halos_within_bin(
+                            source_bin_indices, num_target_halos_in_bin)
+                matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
+            else:
+                msg = ("keyword argument ``intra_bin_selection_method`` "
+                    "can only take the following values {0}")
+                available_methods = ('random', )
+                raise ValueError(msg.format(available_methods))
 
     return result, matching_target_halo_ids
 
