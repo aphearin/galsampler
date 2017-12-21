@@ -101,9 +101,16 @@ def source_halo_index_selection(source_halo_bin_numbers,
             source_bin_mask = source_halo_bin_numbers == source_bin
             source_bin_indices = selection_indices[source_bin_mask]
 
-            result[target_bin_mask] = np.random.choice(
-                    source_bin_indices, num_target_halos_in_bin, replace=True)
+            result[target_bin_mask] = select_source_halos_within_bin(
+                        source_bin_indices, num_target_halos_in_bin)
 
             matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
 
     return result, matching_target_halo_ids
+
+
+def select_source_halos_within_bin(source_bin_indices, num_target_halos_in_bin):
+    """
+    """
+    return np.random.choice(source_bin_indices, num_target_halos_in_bin, replace=True)
+
