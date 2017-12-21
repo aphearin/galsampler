@@ -1,6 +1,8 @@
 """
 """
 import numpy as np
+from halotools.utils import distribution_matching_indices
+
 
 __all__ = ('source_halo_index_selection', )
 
@@ -35,7 +37,7 @@ def _check_source_binning(source_bin_counts, nhalo_min, frac_good_required=0.5):
 
 
 def source_halo_index_selection(source_halo_bin_numbers,
-            target_halo_bin_numbers, target_halo_ids, nhalo_min, *bins):
+            target_halo_bin_numbers, target_halo_ids, nhalo_min, *bins, **kwargs):
     """ Randomly select the index of a host halo from the source catalog
     for every halo in the target halo catalog.
 
@@ -78,6 +80,8 @@ def source_halo_index_selection(source_halo_bin_numbers,
         Numpy integer array of shape (num_target_halos, ) storing the halo ID
         of the target halo corresponding to each selected source halo
     """
+    intra_bin_selection_method = kwargs.get('intra_bin_selection_method', 'random')
+
     num_source_halos = len(source_halo_bin_numbers)
     selection_indices = np.arange(num_source_halos).astype('i8')
 
@@ -101,9 +105,52 @@ def source_halo_index_selection(source_halo_bin_numbers,
             source_bin_mask = source_halo_bin_numbers == source_bin
             source_bin_indices = selection_indices[source_bin_mask]
 
-            result[target_bin_mask] = np.random.choice(
-                    source_bin_indices, num_target_halos_in_bin, replace=True)
-
-            matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
+            if intra_bin_selection_method == 'random':
+                result[target_bin_mask] = randomly_select_source_halos_within_bin(
+                            source_bin_indices, num_target_halos_in_bin)
+                matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
+            elif intra_bin_selection_method == 'hod_matching':
+                try:
+                    source_bin_richness = kwargs['source_richness'][source_bin_mask]
+                    data_bin_richness = np.atleast_1d(kwargs['data_richness'][target_bin])
+                    assert data_bin_richness.shape[0] > 10
+                    result[target_bin_mask] = hod_matching_halo_bin_selection(
+                        source_bin_indices, source_bin_richness,
+                        data_bin_richness, num_target_halos_in_bin)
+                except KeyError:
+                    required_kwargs = ('source_richness', 'data_richness')
+                    msg = ("When selecting the `hod_matching` option, "
+                        "you must also pass the following keyword arguments:\n{0}")
+                    raise KeyError(msg.format(required_kwargs))
+                except (IndexError, TypeError):
+                    msg = ("``source_richness`` keyword argument must store "
+                        "an integer ndarray of shape (num_source_halos, ) = ({0}, )\n"
+                        "``data_richness`` keyword argument must store "
+                        "a list of num_target_halo_bins={1} ndarrays of richness-matching data")
+                    raise ValueError(msg.format(num_source_halos, num_cells_total))
+                except AssertionError:
+                    msg = ("For target_bin = {0}, there are only {1} elements of ``data_richness``")
+                    raise ValueError(msg.format(target_bin, data_bin_richness.shape[0]))
+            else:
+                msg = ("keyword argument ``intra_bin_selection_method`` "
+                    "can only take the following values:\n{0}")
+                available_methods = ('random', 'hod_matching')
+                raise ValueError(msg.format(available_methods))
 
     return result, matching_target_halo_ids
+
+
+def randomly_select_source_halos_within_bin(source_bin_indices, num_target_halos_in_bin):
+    """
+    """
+    return np.random.choice(source_bin_indices, num_target_halos_in_bin, replace=True)
+
+
+def hod_matching_halo_bin_selection(source_bin_indices, source_bin_richness,
+            data_bin_richness, num_target_halos_in_bin):
+    """
+    """
+    max_richness = max(np.max(source_bin_richness), np.max(data_bin_richness))
+    richness_bins = np.arange(0, max_richness+1) - 0.01
+    return source_bin_indices[distribution_matching_indices(source_bin_richness, data_bin_richness,
+            num_target_halos_in_bin, richness_bins)]
