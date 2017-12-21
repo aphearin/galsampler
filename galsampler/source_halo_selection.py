@@ -152,11 +152,5 @@ def hod_matching_halo_bin_selection(source_bin_indices, source_bin_richness,
     """
     max_richness = max(np.max(source_bin_richness), np.max(data_bin_richness))
     richness_bins = np.arange(0, max_richness+1) - 0.01
-    return distribution_matching_indices(source_bin_richness, data_bin_richness,
-            num_target_halos_in_bin, richness_bins)
-
-
-
-
-
-
+    return source_bin_indices[distribution_matching_indices(source_bin_richness, data_bin_richness,
+            num_target_halos_in_bin, richness_bins)]

@@ -11,6 +11,8 @@ from ..host_halo_binning import halo_bin_indices
 
 __all__ = ('test_source_halo_index_selection_no_missing_source_cells', )
 
+fixed_seed = 43
+
 
 def test_source_halo_index_selection_no_missing_source_cells():
     """
@@ -282,13 +284,13 @@ def test_hod_matching2():
     log_mhost_bins = np.arange(log_mhost_min, log_mhost_max+dlog_mhost, dlog_mhost)
     log_mhost_mids = 0.5*(log_mhost_bins[:-1] + log_mhost_bins[1:])
 
-    num_source_halos_per_bin = 10
+    num_source_halos_per_bin = 500
     source_halo_log_mhost = np.tile(log_mhost_mids[1:], num_source_halos_per_bin)
     source_halo_bin_number = halo_bin_indices(log_mhost=(source_halo_log_mhost, log_mhost_bins))
     num_source_halos = len(source_halo_bin_number)
     assert np.min(source_halo_bin_number) == 1
 
-    num_target_halos_per_source_halo = 11
+    num_target_halos_per_source_halo = 510
     num_target_halos_per_bin = num_target_halos_per_source_halo*num_source_halos_per_bin
     target_halo_log_mhost = np.tile(log_mhost_mids, num_target_halos_per_bin)
     target_halo_bin_number = halo_bin_indices(log_mhost=(target_halo_log_mhost, log_mhost_bins))
@@ -296,15 +298,31 @@ def test_hod_matching2():
     target_halo_ids = np.arange(num_target_halos).astype('i8')
     assert np.min(target_halo_bin_number) == 0
 
+    max_bin_number = max(target_halo_bin_number.max(), source_halo_bin_number.max())
+
     nhalo_min = 5
     source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
             source_halo_bin_number, target_halo_bin_number, target_halo_ids, nhalo_min, log_mhost_bins)
 
-    source_richness = np.random.randint(0, 10, num_source_halos)
-    max_bin_number = max(target_halo_bin_number.max(), source_halo_bin_number.max())
-    data_richness = [np.random.randint(0, 8, 100) for __ in range(max_bin_number)]
+    with NumpyRNGContext(fixed_seed):
+        source_richness = np.random.randint(0, 15, num_source_halos)
+        data_richness = [np.random.randint(0, 8, 500) for __ in range(max_bin_number+1)]
 
     source_halo_selection_indices, matching_target_halo_ids = source_halo_index_selection(
             source_halo_bin_number, target_halo_bin_number, target_halo_ids, nhalo_min, log_mhost_bins,
             intra_bin_selection_method='hod_matching',
             source_richness=source_richness, data_richness=data_richness)
+
+    target_richness = source_richness[source_halo_selection_indices]
+
+    mean_data_richness = np.mean(data_richness)
+    mean_source_richness = np.mean(source_richness)
+    mean_target_richness = np.mean(target_richness)
+
+    assert np.allclose(mean_data_richness, mean_target_richness, rtol=0.2)
+    assert not np.allclose(mean_source_richness, mean_target_richness, atol=2)
+
+    std_data_richness = np.std(data_richness)
+    std_target_richness = np.std(target_richness)
+    assert np.allclose(std_data_richness, std_target_richness, rtol=0.2)
+
