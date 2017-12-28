@@ -2,7 +2,8 @@
 """
 import numpy as np
 
-from ..host_halo_binning import halo_bin_indices
+from ..host_halo_binning import halo_bin_indices, matching_bin_dictionary
+from ..source_halo_selection import get_source_bin_from_target_bin
 
 
 def test1_1bin():
@@ -109,3 +110,61 @@ def test2_2bins():
     bin7_mask = bin_numbers == 7
     assert np.all(x[bin7_mask] >= 0.75)
     assert np.all(y[bin7_mask] >= 0.5)
+
+
+def test_matching_bin_dictionary1():
+    """
+    """
+    assigned_bin_numbers = [3, 2, 2, 2, 3, 5, 2, 5, 5, 2, 2]
+    nmin = 2
+    bin_shapes = (10, )
+
+    result = matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes)
+    assert result[2] == 2
+    assert result[3] == 3
+    assert result[5] == 5
+    assert set(result.keys()) == {2, 3, 5}
+
+
+def test_matching_bin_dictionary2():
+    """
+    """
+    assigned_bin_numbers = [3, 2, 2, 2, 3, 5, 2, 5, 5, 2, 2]
+    nmin = 3
+    bin_shapes = (10, )
+
+    result = matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes)
+    assert result[2] == 2
+    assert result[3] == 2
+    assert result[5] == 5
+    assert set(result.keys()) == {2, 3, 5}
+
+
+def test_matching_bin_dictionary3():
+    """
+    """
+    assigned_bin_numbers = [3, 2, 2, 2, 3, 5, 2, 5, 5, 2, 2, 6]
+    nmin = 3
+    bin_shapes = (10, )
+
+    result = matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes)
+    assert result[2] == 2
+    assert result[3] == 2
+    assert result[5] == 5
+    assert result[6] == 5
+    assert set(result.keys()) == {2, 3, 5, 6}
+
+
+def test_matching_bin_dictionary4():
+    """
+    """
+    assigned_bin_numbers = [3, 2, 2, 2, 3, 5, 2, 5, 5, 2, 2, 6]
+    nmin = 5
+    bin_shapes = (10, )
+
+    result = matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes)
+    assert result[2] == 2
+    assert result[3] == 2
+    assert result[5] == 2
+    assert result[6] == 2
+    assert set(result.keys()) == {2, 3, 5, 6}

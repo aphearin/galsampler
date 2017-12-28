@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 
+from .source_halo_selection import get_source_bin_from_target_bin
+
 
 __all__ = ('halo_bin_indices', )
 
@@ -52,3 +54,54 @@ def halo_bin_indices(**haloprop_and_bins_dict):
 
     return np.ravel_multi_index(list(bin_indices_dict.values()),
             list(num_bins_dict.values()))
+
+
+def matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes):
+    """ For every bin number appearing in assigned_bin_numbers, find the nearest
+    bin containing at least ``nmin`` objects, and return the result in the form of a dictionary.
+
+    Parameters
+    ----------
+    assigned_bin_numbers : ndarray
+        Numpy integer array of shape (num_objects, ) storing the bin number
+        to which each object has been assigned
+
+    nmin : int
+        Minimum number of objects for the bin to be considered well-sampled
+
+    bin_shapes : tuple
+        Sequence storing the dimension of the binning scheme.
+
+        For example, if the bin numbers are calculated using a single
+        property binned according to nbins edges, then ``bin_shapes`` = (nbins, )
+        If the bin numbers are calculated using two properties with
+        nbins1 and nbins2 edges, then ``bin_shapes`` = (nbins1, nbins2)
+
+    Returns
+    -------
+    matching_bin_dict : dict
+        Python dictionary storing the bin correspondence.
+        There will be a key for every unique entry of assigned_bin_numbers.
+        The value bound to that key stores the bin correspondence.
+
+        For example, if ``2`` appears with sufficient multiplicity in ``assigned_bin_numbers``,
+        then ``matching_bin_dict`` will have a key-value pair of 2: 2.
+        If ``2`` appears with insufficient multiplicity, then ``matching_bin_dict``
+        will have a key-value pair of 2: n, where ``n`` is the closest bin to ``2``
+        with sufficient multiplicity.
+
+    """
+    num_bins_total = np.product(bin_shapes)
+    unique_bins, counts = np.unique(assigned_bin_numbers, return_counts=True)
+
+    d = {}
+    for bin_number in range(num_bins_total):
+        if bin_number in unique_bins:
+            d[bin_number] = counts[unique_bins == bin_number][0]
+        else:
+            d[bin_number] = 0
+
+    result = {}
+    for i in unique_bins:
+        result[i] = get_source_bin_from_target_bin(d, i, nmin, bin_shapes)
+    return result
