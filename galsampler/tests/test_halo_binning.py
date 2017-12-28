@@ -1,6 +1,7 @@
 """
 """
 import numpy as np
+import pytest
 
 from ..host_halo_binning import halo_bin_indices, matching_bin_dictionary
 from ..source_halo_selection import get_source_bin_from_target_bin
@@ -120,10 +121,17 @@ def test_matching_bin_dictionary1():
     bin_shapes = (10, )
 
     result = matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes)
+    assert result[0] == 2
+    assert result[1] == 2
     assert result[2] == 2
     assert result[3] == 3
+    assert result[4] == 3
     assert result[5] == 5
-    assert set(result.keys()) == {2, 3, 5}
+    assert result[6] == 5
+    assert result[7] == 5
+    assert result[8] == 5
+    assert result[9] == 5
+    assert set(result.keys()) == set(np.arange(np.prod(bin_shapes)))
 
 
 def test_matching_bin_dictionary2():
@@ -134,10 +142,17 @@ def test_matching_bin_dictionary2():
     bin_shapes = (10, )
 
     result = matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes)
+    assert result[0] == 2
+    assert result[1] == 2
     assert result[2] == 2
     assert result[3] == 2
+    assert result[4] == 5
     assert result[5] == 5
-    assert set(result.keys()) == {2, 3, 5}
+    assert result[6] == 5
+    assert result[7] == 5
+    assert result[8] == 5
+    assert result[9] == 5
+    assert set(result.keys()) == set(np.arange(np.prod(bin_shapes)))
 
 
 def test_matching_bin_dictionary3():
@@ -148,11 +163,16 @@ def test_matching_bin_dictionary3():
     bin_shapes = (10, )
 
     result = matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes)
+    assert result[0] == 2
+    assert result[1] == 2
     assert result[2] == 2
     assert result[3] == 2
     assert result[5] == 5
     assert result[6] == 5
-    assert set(result.keys()) == {2, 3, 5, 6}
+    assert result[7] == 5
+    assert result[8] == 5
+    assert result[9] == 5
+    assert set(result.keys()) == set(np.arange(np.prod(bin_shapes)))
 
 
 def test_matching_bin_dictionary4():
@@ -163,8 +183,5 @@ def test_matching_bin_dictionary4():
     bin_shapes = (10, )
 
     result = matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes)
-    assert result[2] == 2
-    assert result[3] == 2
-    assert result[5] == 2
-    assert result[6] == 2
-    assert set(result.keys()) == {2, 3, 5, 6}
+    assert set(result.values()) == set((2, ))
+    assert set(result.keys()) == set(np.arange(np.prod(bin_shapes)))

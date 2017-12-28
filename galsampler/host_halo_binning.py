@@ -57,8 +57,8 @@ def halo_bin_indices(**haloprop_and_bins_dict):
 
 
 def matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes):
-    """ For every bin number appearing in assigned_bin_numbers, find the nearest
-    bin containing at least ``nmin`` objects, and return the result in the form of a dictionary.
+    """ For every bin number, find the closest bin with more than ``nmin`` objects,
+    and return the result in the form of a dictionary.
 
     Parameters
     ----------
@@ -81,15 +81,8 @@ def matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes):
     -------
     matching_bin_dict : dict
         Python dictionary storing the bin correspondence.
-        There will be a key for every unique entry of assigned_bin_numbers.
-        The value bound to that key stores the bin correspondence.
-
-        For example, if ``2`` appears with sufficient multiplicity in ``assigned_bin_numbers``,
-        then ``matching_bin_dict`` will have a key-value pair of 2: 2.
-        If ``2`` appears with insufficient multiplicity, then ``matching_bin_dict``
-        will have a key-value pair of 2: n, where ``n`` is the closest bin to ``2``
-        with sufficient multiplicity.
-
+        There will be a key for every possible bin number.
+        The value bound to that key stores the nearest bin with more than ``nmin`` objects.
     """
     num_bins_total = np.product(bin_shapes)
     unique_bins, counts = np.unique(assigned_bin_numbers, return_counts=True)
@@ -102,6 +95,6 @@ def matching_bin_dictionary(assigned_bin_numbers, nmin, bin_shapes):
             d[bin_number] = 0
 
     result = {}
-    for i in unique_bins:
+    for i in range(num_bins_total):
         result[i] = get_source_bin_from_target_bin(d, i, nmin, bin_shapes)
     return result
