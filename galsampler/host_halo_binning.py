@@ -7,7 +7,7 @@ import numpy as np
 from .source_halo_selection import get_source_bin_from_target_bin
 
 
-__all__ = ('halo_bin_indices', )
+__all__ = ('halo_bin_indices', 'matching_bin_dictionary')
 
 
 def halo_bin_indices(**haloprop_and_bins_dict):
