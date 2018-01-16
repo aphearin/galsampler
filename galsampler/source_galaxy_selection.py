@@ -143,5 +143,5 @@ def _galaxy_table_indices(source_halo_id, galaxy_host_halo_id):
     num_source_halos = len(source_halo_id)
     indices = np.zeros(num_source_halos) - 1
     indices[idxA] = indx_uval_gals[idxB]
-    return indices
+    return indices.astype(int)
 
