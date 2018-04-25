@@ -2,6 +2,10 @@
 """
 import numpy as np
 from halotools.utils import distribution_matching_indices
+from astropy.utils.misc import NumpyRNGContext
+
+
+fixed_seed = 43
 
 
 __all__ = ('source_halo_index_selection', )
@@ -69,6 +73,9 @@ def source_halo_index_selection(source_halo_bin_numbers,
     *bins : sequence
         Sequence of arrays that were used to bin the halos
 
+    seed : int, optional
+        Random number seed. Default is 43.
+
     Returns
     -------
     selection_indices : ndarray
@@ -81,6 +88,7 @@ def source_halo_index_selection(source_halo_bin_numbers,
         of the target halo corresponding to each selected source halo
     """
     intra_bin_selection_method = kwargs.get('intra_bin_selection_method', 'random')
+    seed = kwargs.get('seed', fixed_seed)
 
     num_source_halos = len(source_halo_bin_numbers)
     selection_indices = np.arange(num_source_halos).astype('i8')
@@ -107,7 +115,7 @@ def source_halo_index_selection(source_halo_bin_numbers,
 
             if intra_bin_selection_method == 'random':
                 result[target_bin_mask] = randomly_select_source_halos_within_bin(
-                            source_bin_indices, num_target_halos_in_bin)
+                            source_bin_indices, num_target_halos_in_bin, seed=seed)
                 matching_target_halo_ids[target_bin_mask] = target_halo_ids[target_bin_mask]
             elif intra_bin_selection_method == 'hod_matching':
                 try:
@@ -140,10 +148,12 @@ def source_halo_index_selection(source_halo_bin_numbers,
     return result, matching_target_halo_ids
 
 
-def randomly_select_source_halos_within_bin(source_bin_indices, num_target_halos_in_bin):
+def randomly_select_source_halos_within_bin(source_bin_indices, num_target_halos_in_bin, seed):
     """
     """
-    return np.random.choice(source_bin_indices, num_target_halos_in_bin, replace=True)
+    with NumpyRNGContext(seed):
+        return np.random.choice(
+            source_bin_indices, num_target_halos_in_bin, replace=True)
 
 
 def hod_matching_halo_bin_selection(source_bin_indices, source_bin_richness,
